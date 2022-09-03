@@ -8,8 +8,9 @@ App::~App() {}
 
 Game::Game() : Layer("GameLayer") {
     ts::BufferLayout layout = {{0x1406, 3}, {0x1406, 2}};
-    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(vertices, sizeof(vertices), layout));
-    ts::Ref<ts::IndexBuffer> ib(new ts::IndexBuffer(indices, (sizeof(indices) / sizeof(unsigned int))));
+    float* vertices = CreateChunk();
+    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(vertices, (SIZE * SIZE * SIZE * 24 * 5 * sizeof(float)), layout));
+    ts::Ref<ts::IndexBuffer> ib(new ts::IndexBuffer(CreateIndices(), (SIZE * SIZE * SIZE * 36)));
     m_VertexArray.reset(new ts::VertexArray(vb, ib));
 
     std::string vSource = R"(
