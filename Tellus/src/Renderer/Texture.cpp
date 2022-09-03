@@ -15,12 +15,12 @@ Texture2D::Texture2D(const std::string& path) {
     m_Height = height;
 
     glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
-    glTextureStorage2D(m_ID, 1, GL_RGB8, m_Width, m_Height);
+    glTextureStorage2D(m_ID, 1, GL_RGBA8, m_Width, m_Height);
 
     glTextureParameteri(m_ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(m_ID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTextureSubImage2D(m_ID, 0, 0, 0, m_Width, m_Height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(m_ID, 0, 0, 0, m_Width, m_Height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     stbi_image_free(data);
 }

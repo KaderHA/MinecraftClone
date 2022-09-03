@@ -8,8 +8,9 @@ App::~App() {}
 
 Game::Game() : Layer("GameLayer") {
     ts::BufferLayout layout = {{0x1406, 3}, {0x1406, 2}};
-    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(vertices, sizeof(vertices), layout));
-    ts::Ref<ts::IndexBuffer> ib(new ts::IndexBuffer(indices, (sizeof(indices) / sizeof(unsigned int))));
+    float* vertices = CreateChunk();
+    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(vertices, (SIZE * SIZE * SIZE * 24 * 5 * sizeof(float)), layout));
+    ts::Ref<ts::IndexBuffer> ib(new ts::IndexBuffer(CreateIndices(), (SIZE * SIZE * SIZE * 36)));
     m_VertexArray.reset(new ts::VertexArray(vb, ib));
 
     std::string vSource = R"(
@@ -47,7 +48,7 @@ Game::Game() : Layer("GameLayer") {
     m_Shader->Bind();
     m_Shader->set1i("uTexture", 0);
 
-    m_Texture.reset(new ts::Texture2D("res/textures/Checkerboard.png"));
+    m_Texture.reset(new ts::Texture2D("res/textures/grass_side.png"));
 }
 
 Game::~Game() {}
@@ -57,6 +58,8 @@ void Game::OnUpdate() {
     ts::Renderer::BeginScene(m_Camera);
     m_Texture->Bind();
     ts::Renderer::Submit(m_VertexArray, m_Shader);
+
+    if (ts::Input::IsKeyPressed(TS_KEY_LEFT_SHIFT)) m_Camera.SetSpeed(10.f);
 }
 
 void Game::OnEvent(ts::Event& e) {
