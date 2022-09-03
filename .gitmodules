@@ -1,0 +1,6 @@
+[submodule "Tellus/ext/glfw"]
+	path = Tellus/ext/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "Tellus/ext/glm"]
+	path = Tellus/ext/glm
+	url = https://github.com/g-truc/glm.git
