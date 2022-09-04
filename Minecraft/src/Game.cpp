@@ -7,6 +7,7 @@ App::~App() {}
 
 Game::Game() : Layer("GameLayer") {
     m_Chunk.reset(new Chunk());
+    m_Chunk->Generate();
     m_Chunk->CreateMesh();
 
     m_Camera = ts::Camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
