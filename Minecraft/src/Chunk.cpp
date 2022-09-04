@@ -1,31 +1,33 @@
 #include "Chunk.hpp"
+#include "TextureAtlas.hpp"
 
 struct Vertex {
     glm::vec3 Position;
     glm::vec2 TexCoord;
 };
 
-Chunk::Chunk() {
+Chunk::Chunk(glm::ivec3 localChunkPosition) : m_LocalChunkPosition(localChunkPosition) {
     m_Blocks = new Block[CHUNK_SIZE];
+    // this->Generate();
 }
 Chunk::~Chunk() {
     delete[] m_Blocks;
 }
 
-void Chunk::Generate(int localChunkX, int localChunkY, int localChunkZ) {
+void Chunk::Generate() {
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
                 int average = (CHUNK_WIDTH + CHUNK_HEIGHT + CHUNK_DEPTH) / 3;
                 if (sqrt((float)(x - CHUNK_WIDTH / 2) * (x - CHUNK_WIDTH / 2) + (y - CHUNK_HEIGHT / 2) * (y - CHUNK_HEIGHT / 2) + (z - CHUNK_DEPTH / 2) * (z - CHUNK_DEPTH / 2)) <= average / 2) {
                     int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                    m_Blocks[index].SetBlockType(BlockType::Dirt);
+                    m_Blocks[index].SetBlockType(BlockType::Grass);
                 }
             }
         }
     }
 }
-void Chunk::CreateMesh() {
+void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
     Vertex* vertices = new Vertex[CHUNK_SIZE * 24];
     int block_vertex_index = 0;
     for (int z = 0; z < CHUNK_DEPTH; z++) {
@@ -34,41 +36,42 @@ void Chunk::CreateMesh() {
                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
                 if (m_Blocks[index].IsActive() == false) continue;
                 // Front
-                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, {0.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, {1.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, {1.0f, 1.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, {0.0f, 1.0f}};
+                TexCoords texCoords = texture->GetTextureCoords(m_Blocks[index].GetBlockType());
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.side.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopLeft};
 
                 // Back
-                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, {0.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, {1.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, {1.0f, 1.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, {0.0f, 1.0f}};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, texCoords.side.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.side.TopRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
 
                 // Right
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, {0.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, {1.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, {1.0f, 1.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, {0.0f, 1.0f}};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.side.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
 
                 // Left
-                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, {0.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, {1.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, {1.0f, 1.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, {0.0f, 1.0f}};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, texCoords.side.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
 
                 // Top
-                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, {0.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, {1.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, {1.0f, 1.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, {0.0f, 1.0f}};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.top.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.top.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, texCoords.top.TopRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.top.TopLeft};
 
-                // Bottoblock_vertex_index
+                // Bottom
 
-                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, {0.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, {1.0f, 0.0f}};
-                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, {1.0f, 1.0f}};
-                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, {0.0f, 1.0f}};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, texCoords.bottom.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.bottom.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.bottom.TopRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.bottom.TopLeft};
             }
         }
     }

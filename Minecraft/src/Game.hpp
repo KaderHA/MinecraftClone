@@ -2,6 +2,7 @@
 #define TS_MAIN
 #include <Tellus.hpp>
 #include "Chunk.hpp"
+#include "TextureAtlas.hpp"
 
 class Game : public ts::Layer {
    public:
@@ -16,6 +17,7 @@ class Game : public ts::Layer {
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Camera m_Camera;
     ts::Ref<ts::Texture2D> m_Texture;
+    ts::Ref<TextureAtlas> m_WorldTexture;
     ts::Ref<ts::Shader> m_Shader;
 };
 
