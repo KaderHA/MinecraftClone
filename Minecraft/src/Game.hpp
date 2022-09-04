@@ -1,4 +1,7 @@
+#pragma once
+#define TS_MAIN
 #include <Tellus.hpp>
+#include "Chunk.hpp"
 
 class Game : public ts::Layer {
    public:
@@ -9,6 +12,7 @@ class Game : public ts::Layer {
     void OnEvent(ts::Event& event) override;
 
    private:
+    ts::Scope<Chunk> m_Chunk;
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Camera m_Camera;
     ts::Ref<ts::Texture2D> m_Texture;

@@ -14,4 +14,7 @@
 
 #include "Renderer/Camera.hpp"
 
-#include "Entry.hpp"
+#ifdef TS_MAIN
+#    include "Entry.hpp"
+#    undef TS_MAIN
+#endif
