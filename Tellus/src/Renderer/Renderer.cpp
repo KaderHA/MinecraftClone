@@ -27,4 +27,8 @@ void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Shader>& shader) {
     RendererAPI::DrawIndexed(va);
 }
 
+void Renderer::SetDepthMask(bool value) {
+    RendererAPI::SetDepthMask(value);
+}
+
 };  // namespace ts

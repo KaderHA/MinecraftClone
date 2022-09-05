@@ -14,4 +14,11 @@ void RendererAPI::DrawIndexed(const Ref<VertexArray>& va) {
     glDrawElements(GL_TRIANGLES, va->GetCount(), GL_UNSIGNED_INT, nullptr);
 }
 
+void RendererAPI::SetDepthMask(bool value) {
+    if (value)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
+}
+
 };  // namespace ts

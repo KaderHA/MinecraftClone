@@ -19,6 +19,10 @@ class Game : public ts::Layer {
     ts::Ref<ts::Texture2D> m_Texture;
     ts::Ref<TextureAtlas> m_WorldTexture;
     ts::Ref<ts::Shader> m_Shader;
+
+    ts::Ref<ts::VertexArray> m_SkyBox;
+    ts::Ref<ts::TextureCubeMap> m_SkyBoxTexture;
+    ts::Ref<ts::Shader> m_SkyBoxShader;
 };
 
 class App : public ts::Application {

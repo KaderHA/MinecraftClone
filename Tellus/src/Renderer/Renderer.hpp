@@ -14,6 +14,8 @@ class Renderer {
 
     static void Submit(const Ref<VertexArray>& va);
     static void Submit(const Ref<VertexArray>& va, const Ref<Shader>& shader);
+
+    static void SetDepthMask(bool value);
 };
 
 };  // namespace ts
