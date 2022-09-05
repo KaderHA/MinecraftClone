@@ -1,37 +1,17 @@
 #pragma once
+#include <Tellus.hpp>
 
-// clang-format off
-float skyboxVertices[] = {
-    -1.0f, -1.0f,  1.0f,
-     1.0f, -1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,
+class Skybox {
+   public:
+    Skybox(const char* directoryPath);
+    ~Skybox();
 
-    -1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,
-     1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
+    void BindTexture(unsigned int slot) const;
+    const ts::Ref<ts::VertexArray>& GetVAO() const { return m_VertexArray; }
 
-     1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-     1.0f,  1.0f, -1.0f,
-
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f, -1.0f,
-    
-    -1.0f,  1.0f, -1.0f,
-     1.0f,  1.0f, -1.0f,
-     1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,
-    
-    -1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f,  1.0f,
-    -1.0f, -1.0f,  1.0f
+   private:
+    ts::Ref<ts::VertexArray> m_VertexArray;
+    ts::Ref<ts::TextureCubeMap> m_Texture;
 };
 
-unsigned int skyboxIndices[36];
 // clang-format on
