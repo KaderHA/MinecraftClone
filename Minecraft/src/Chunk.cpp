@@ -20,17 +20,20 @@ Chunk::~Chunk() {
 }
 
 void Chunk::Generate() {
-    for (int z = 0; z < CHUNK_DEPTH; z++) {
-        for (int y = 0; y < CHUNK_HEIGHT; y++) {
-            for (int x = 0; x < CHUNK_WIDTH; x++) {
-                int average = (CHUNK_WIDTH + CHUNK_HEIGHT + CHUNK_DEPTH) / 3;
-                if (sqrt((float)(x - CHUNK_WIDTH / 2) * (x - CHUNK_WIDTH / 2) + (y - CHUNK_HEIGHT / 2) * (y - CHUNK_HEIGHT / 2) + (z - CHUNK_DEPTH / 2) * (z - CHUNK_DEPTH / 2)) <= average / 2) {
-                    int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                    m_Blocks[index].SetBlockType(BlockType::Grass);
-                }
-            }
-        }
+    for (int i = 0; i < CHUNK_SIZE; i++) {
+        m_Blocks[i].SetBlockType(BlockType::Grass);
     }
+    // for (int z = 0; z < CHUNK_DEPTH; z++) {
+    //     for (int y = 0; y < CHUNK_HEIGHT; y++) {
+    //         for (int x = 0; x < CHUNK_WIDTH; x++) {
+    //             int average = (CHUNK_WIDTH + CHUNK_HEIGHT + CHUNK_DEPTH) / 3;
+    //             if (sqrt((float)(x - CHUNK_WIDTH / 2) * (x - CHUNK_WIDTH / 2) + (y - CHUNK_HEIGHT / 2) * (y - CHUNK_HEIGHT / 2) + (z - CHUNK_DEPTH / 2) * (z - CHUNK_DEPTH / 2)) <= average / 2) {
+    //                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
+    //                 m_Blocks[index].SetBlockType(BlockType::Grass);
+    //             }
+    //         }
+    //     }
+    // }
 }
 void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
     Vertex* vertices = new Vertex[CHUNK_SIZE * 24];

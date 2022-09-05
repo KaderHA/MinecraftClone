@@ -3,7 +3,7 @@
 
 TextureAtlas::TextureAtlas(const ts::Ref<ts::Texture>& texture, unsigned int row_count, unsigned int column_count) {
     m_TextureCoords = new QuadTextureCoords[((texture->GetWidth() / row_count) * (texture->GetHeight() / column_count))];
-    const double spacing = (float)row_count / (float)texture->GetWidth();
+    const float spacing = (float)row_count / (float)texture->GetWidth();
 
     for (int y = column_count, index = 0; y > 0; y--) {
         for (int x = 0; x < row_count; x++, index++) {
