@@ -12,6 +12,7 @@ class RendererAPI {
     static void Clear();
     static void DrawIndexed(const Ref<VertexArray>& va);
 
+    static void SetDepthFunc(unsigned int func);
     static void SetDepthMask(bool value);
 };
 

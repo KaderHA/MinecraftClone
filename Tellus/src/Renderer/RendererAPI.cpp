@@ -14,6 +14,10 @@ void RendererAPI::DrawIndexed(const Ref<VertexArray>& va) {
     glDrawElements(GL_TRIANGLES, va->GetCount(), GL_UNSIGNED_INT, nullptr);
 }
 
+void RendererAPI::SetDepthFunc(unsigned int func) {
+    glDepthFunc(func);
+}
+
 void RendererAPI::SetDepthMask(bool value) {
     if (value)
         glEnable(GL_DEPTH_TEST);

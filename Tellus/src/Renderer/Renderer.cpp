@@ -26,6 +26,9 @@ void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Shader>& shader) {
     va->Bind();
     RendererAPI::DrawIndexed(va);
 }
+void Renderer::SetDepthFunc(DepthFunc func) {
+    RendererAPI::SetDepthFunc(static_cast<unsigned int>(func));
+}
 
 void Renderer::SetDepthMask(bool value) {
     RendererAPI::SetDepthMask(value);
