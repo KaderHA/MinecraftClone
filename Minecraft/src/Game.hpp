@@ -4,6 +4,13 @@
 #include "Chunk.hpp"
 #include "TextureAtlas.hpp"
 
+struct ChunkPositionHash {
+    // http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
+    std::size_t operator()(const glm::ivec3& position) const {
+        return (position.x * 88339) ^ (position.z * 91967) ^ (position.z * 126323);
+    }
+};
+
 class Skybox;
 
 class Game : public ts::Layer {
@@ -15,6 +22,8 @@ class Game : public ts::Layer {
     void OnEvent(ts::Event& event) override;
 
    private:
+    // std::unordered_map<glm::ivec3, Chunk, ChunkPositionHash> m_ChunkMap;
+    Chunk* m_Chunks;
     ts::Scope<Chunk> m_Chunk;
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Camera m_Camera;

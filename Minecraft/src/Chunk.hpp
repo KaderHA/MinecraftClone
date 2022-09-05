@@ -6,14 +6,16 @@ class TextureAtlas;
 
 class Chunk {
    public:
-    Chunk(glm::ivec3 localChunkPosition = glm::ivec3(0));
+    Chunk();
     ~Chunk();
+
+    void Init(glm::ivec3 localChunkPosition = glm::ivec3(0));
 
     void Generate();
     void CreateMesh(const ts::Ref<TextureAtlas>& texture);
 
     const ts::Ref<ts::VertexArray>& GetVAO() const { return m_VertexArray; }
-    glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), m_LocalChunkPosition); }
+    glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
 
    public:
     static const int CHUNK_WIDTH = 16;

@@ -6,10 +6,15 @@ struct Vertex {
     glm::vec2 TexCoord;
 };
 
-Chunk::Chunk(glm::ivec3 localChunkPosition) : m_LocalChunkPosition(localChunkPosition) {
+Chunk::Chunk() : m_LocalChunkPosition(glm::vec3(0.f)) {
     m_Blocks = new Block[CHUNK_SIZE];
-    // this->Generate();
 }
+
+void Chunk::Init(glm::ivec3 localChunkPosition) {
+    m_LocalChunkPosition = localChunkPosition;
+    this->Generate();
+}
+
 Chunk::~Chunk() {
     delete[] m_Blocks;
 }
@@ -35,6 +40,7 @@ void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
                 if (m_Blocks[index].IsActive() == false) continue;
+                glm::vec3 chunkPosition = {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH};
                 // Front
                 TexCoords texCoords = texture->GetTextureCoords(m_Blocks[index].GetBlockType());
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.side.BottomLeft};

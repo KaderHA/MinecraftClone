@@ -22,6 +22,14 @@ Game::Game() : Layer("GameLayer") {
     m_Texture.reset(new ts::Texture2D("res/textures/terrain.png"));
     m_WorldTexture.reset(new TextureAtlas(m_Texture, 16, 16));
 
+    m_Chunks = new Chunk[256];
+    for (int x = 0, i = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++, i++) {
+            m_Chunks[i].Init({x, 0.0f, z});
+            m_Chunks[i].CreateMesh(m_WorldTexture);
+        }
+    }
+
     m_Chunk.reset(new Chunk);
     m_Chunk->Generate();
     m_Chunk->CreateMesh(m_WorldTexture);
@@ -38,6 +46,13 @@ void Game::OnUpdate() {
     m_Shader->setMat4fv("uModel", m_Chunk->GetModelMatrix());
     m_Texture->Bind();
     ts::Renderer::Submit(m_Chunk->GetVAO(), m_Shader);
+
+    for (int x = 0, i = 0; x < 16; x++) {
+        for (int z = 0; z < 16; z++, i++) {
+            m_Shader->setMat4fv("uModel", m_Chunks[i].GetModelMatrix());
+            ts::Renderer::Submit(m_Chunks[i].GetVAO(), m_Shader);
+        }
+    }
 
     ts::Renderer::SetDepthFunc(ts::DepthFunc::LEQUAL);
     m_SkyBoxShader->Bind();
