@@ -27,5 +27,6 @@ class TextureAtlas {
     void GenerateTexCoords();
 
    private:
+    ts::Ref<ts::TextureBuffer> m_UVBuffer;
     QuadTextureCoords* m_TextureCoords;
 };

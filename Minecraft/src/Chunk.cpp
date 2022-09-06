@@ -1,5 +1,6 @@
 #include "Chunk.hpp"
 #include "TextureAtlas.hpp"
+#include "FastNoiseLite.h"
 
 struct Vertex {
     glm::vec3 Position;
@@ -20,20 +21,36 @@ Chunk::~Chunk() {
 }
 
 void Chunk::Generate() {
-    for (int i = 0; i < CHUNK_SIZE; i++) {
-        m_Blocks[i].SetBlockType(BlockType::Grass);
+    FastNoiseLite noise;
+    noise.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_OpenSimplex2);
+    noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
+    noise.SetFractalOctaves(5);
+    noise.SetFractalLacunarity(1.8f);
+
+    for (int z = 0; z < CHUNK_DEPTH; z++) {
+        for (int y = 0; y < CHUNK_HEIGHT; y++) {
+            for (int x = 0; x < CHUNK_WIDTH; x++) {
+                int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
+                int height = (int)((noise.GetNoise((float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f, (float)(z + m_LocalChunkPosition.z * CHUNK_DEPTH) / 2.f)) * (CHUNK_HEIGHT));
+
+                if (y < height && y >= height - 10)
+                    m_Blocks[index].SetBlockType(BlockType::Dirt);
+                if (y < height - 10 && y > 0)
+                    m_Blocks[index].SetBlockType(BlockType::Stone);
+                if (y == height)
+                    m_Blocks[index].SetBlockType(BlockType::Grass);
+                if (y == 0)
+                    m_Blocks[index].SetBlockType(BlockType::Bedrock);
+
+                // Circle generation
+                // int average = (CHUNK_WIDTH + CHUNK_HEIGHT + CHUNK_DEPTH) / 3;
+                // if (sqrt((float)(x - CHUNK_WIDTH / 2) * (x - CHUNK_WIDTH / 2) + (y - CHUNK_HEIGHT / 2) * (y - CHUNK_HEIGHT / 2) + (z - CHUNK_DEPTH / 2) * (z - CHUNK_DEPTH / 2)) <= average / 2) {
+                //     int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
+                //     m_Blocks[index].SetBlockType(BlockType::Grass);
+                // }
+            }
+        }
     }
-    // for (int z = 0; z < CHUNK_DEPTH; z++) {
-    //     for (int y = 0; y < CHUNK_HEIGHT; y++) {
-    //         for (int x = 0; x < CHUNK_WIDTH; x++) {
-    //             int average = (CHUNK_WIDTH + CHUNK_HEIGHT + CHUNK_DEPTH) / 3;
-    //             if (sqrt((float)(x - CHUNK_WIDTH / 2) * (x - CHUNK_WIDTH / 2) + (y - CHUNK_HEIGHT / 2) * (y - CHUNK_HEIGHT / 2) + (z - CHUNK_DEPTH / 2) * (z - CHUNK_DEPTH / 2)) <= average / 2) {
-    //                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-    //                 m_Blocks[index].SetBlockType(BlockType::Grass);
-    //             }
-    //         }
-    //     }
-    // }
 }
 void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
     Vertex* vertices = new Vertex[CHUNK_SIZE * 24];
@@ -121,3 +138,6 @@ unsigned int* Chunk::CreateIndices() {
 
     return indices;
 }
+
+// TextureFormat Chunk::GetUVs(BlockType type) {
+// }

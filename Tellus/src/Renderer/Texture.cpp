@@ -92,4 +92,30 @@ void TextureCubeMap::Unbind(unsigned int slot) const {
     glBindTextureUnit(slot, 0);
 }
 
+TextureBuffer::TextureBuffer(float* data, unsigned int byteSize, TextureDataType type) {
+    unsigned int temp;
+    glGenBuffers(1, &temp);
+    glBindBuffer(GL_TEXTURE_BUFFER, temp);
+    glBufferData(GL_TEXTURE_BUFFER, byteSize, data, GL_STATIC_DRAW);
+
+    glGenTextures(1, &m_ID);
+    glBindTexture(GL_TEXTURE_BUFFER, m_ID);
+    glTexBuffer(GL_TEXTURE_BUFFER, static_cast<int>(type), temp);
+
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
+    glDeleteBuffers(1, &temp);
+}
+TextureBuffer::~TextureBuffer() {
+    glDeleteTextures(1, &m_ID);
+}
+
+void TextureBuffer::Bind(unsigned int slot) const {
+    glBindTextureUnit(slot, m_ID);
+}
+
+void TextureBuffer::Unbind(unsigned int slot) const {
+    glBindTextureUnit(slot, 0);
+}
+
 };  // namespace ts
