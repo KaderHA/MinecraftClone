@@ -25,6 +25,7 @@ void Application::Run() {
         if (Input::IsKeyPressed(TS_KEY_ESCAPE)) m_Running = false;
 
         /// TODO -> Find a more appropriate place to clear screen
+        glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
