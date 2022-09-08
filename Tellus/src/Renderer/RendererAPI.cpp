@@ -10,6 +10,10 @@ void RendererAPI::SetClearColor(const glm::vec4& color) {
 void RendererAPI::Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
+
+void RendererAPI::DrawArray(const Ref<VertexArray>& va) {
+    glDrawArrays(GL_TRIANGLES, 0, va->GetVertexCount());
+}
 void RendererAPI::DrawIndexed(const Ref<VertexArray>& va) {
     glDrawElements(GL_TRIANGLES, va->GetCount(), GL_UNSIGNED_INT, nullptr);
 }

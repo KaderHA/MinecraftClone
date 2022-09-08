@@ -53,12 +53,13 @@ class VertexBuffer {
 
     void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
     const BufferLayout& GetLayout() const { return m_Layout; }
+    const unsigned int GetVertexCount() const { return m_VertexCount; }
 
     static VertexBuffer* Create(float* vertices, unsigned int byteSize);
 
    private:
     BufferLayout m_Layout;
-    unsigned int m_RenderID;
+    unsigned int m_RenderID, m_VertexCount;
 };
 
 // ---------------------------------------------------------------------------
@@ -83,13 +84,16 @@ class IndexBuffer {
 class VertexArray {
    public:
     VertexArray();
+    VertexArray(const Ref<VertexBuffer>& vb);
     VertexArray(const Ref<VertexBuffer>& vb, const Ref<IndexBuffer>& ib);
     ~VertexArray();
 
     void Bind() const;
     void Unbind() const;
 
+    bool HasIndexBuffer() const { return m_IndexBuffer != nullptr; }
     int GetCount() const { return m_IndexBuffer->GetCount(); }
+    int GetVertexCount() const { return m_VertexBuffers[0]->GetVertexCount(); }
 
     void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer);
     void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer);

@@ -53,7 +53,7 @@ void Chunk::Generate() {
     }
 }
 void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
-    Vertex* vertices = new Vertex[CHUNK_SIZE * 24];
+    Vertex* vertices = new Vertex[CHUNK_SIZE * 36];
     int block_vertex_index = 0;
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
@@ -65,11 +65,15 @@ void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
                 TexCoords texCoords = texture->GetTextureCoords(m_Blocks[index].GetBlockType());
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.side.BottomLeft};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopRight};
                 vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopLeft};
 
                 // Back
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, texCoords.side.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.side.BottomRight};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.side.TopRight};
                 vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
@@ -77,17 +81,23 @@ void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
                 // Right
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.side.BottomLeft};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopRight};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
 
                 // Left
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, texCoords.side.BottomLeft};
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.side.BottomRight};
                 vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.side.TopRight};
                 vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.side.TopLeft};
 
                 // Top
                 vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z}, texCoords.top.BottomLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.top.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.top.TopLeft};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z}, texCoords.top.BottomRight};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y + 1.0f, (float)z + 1.0f}, texCoords.top.TopRight};
                 vertices[block_vertex_index++] = {{(float)x, (float)y + 1.0f, (float)z + 1.0f}, texCoords.top.TopLeft};
@@ -96,15 +106,17 @@ void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
 
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z}, texCoords.bottom.BottomLeft};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.bottom.BottomRight};
+                vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.bottom.TopLeft};
+                vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z}, texCoords.bottom.BottomRight};
                 vertices[block_vertex_index++] = {{(float)x + 1.0f, (float)y, (float)z + 1.0f}, texCoords.bottom.TopRight};
                 vertices[block_vertex_index++] = {{(float)x, (float)y, (float)z + 1.0f}, texCoords.bottom.TopLeft};
             }
         }
     }
 
-    float* float_vertices = new float[CHUNK_SIZE * 24 * 5];
+    float* float_vertices = new float[CHUNK_SIZE * 36 * 5];
 
-    for (int i = 0; i < CHUNK_SIZE * 24; i++) {
+    for (int i = 0; i < CHUNK_SIZE * 36; i++) {
         float_vertices[(i * 5) + 0] = vertices[i].Position.x;
         float_vertices[(i * 5) + 1] = vertices[i].Position.y;
         float_vertices[(i * 5) + 2] = vertices[i].Position.z;
@@ -113,30 +125,11 @@ void Chunk::CreateMesh(const ts::Ref<TextureAtlas>& texture) {
     }
 
     ts::BufferLayout layout = {{0x1406, 3}, {0x1406, 2}};
-    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(float_vertices, (CHUNK_SIZE * 24 * 5 * sizeof(float)), layout));
-    unsigned int* indices = CreateIndices();
-    ts::Ref<ts::IndexBuffer> ib(new ts::IndexBuffer(indices, (CHUNK_SIZE * 36)));
-    m_VertexArray.reset(new ts::VertexArray(vb, ib));
+    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(float_vertices, (CHUNK_SIZE * 36 * 5 * sizeof(float)), layout));
+    m_VertexArray.reset(new ts::VertexArray(vb));
 
     delete[] vertices;
     delete[] float_vertices;
-    delete[] indices;
-}
-
-unsigned int* Chunk::CreateIndices() {
-    unsigned int* indices = new unsigned int[CHUNK_SIZE * 36];
-    for (int i = 0, index = 0; i < CHUNK_SIZE * 36; i += 36, index += 24) {
-        for (int j = 0; j < 6; j++) {
-            indices[i + (j * 6) + 0] = 0 + (j * 4) + index;
-            indices[i + (j * 6) + 1] = 1 + (j * 4) + index;
-            indices[i + (j * 6) + 2] = 3 + (j * 4) + index;
-            indices[i + (j * 6) + 3] = 1 + (j * 4) + index;
-            indices[i + (j * 6) + 4] = 2 + (j * 4) + index;
-            indices[i + (j * 6) + 5] = 3 + (j * 4) + index;
-        }
-    }
-
-    return indices;
 }
 
 // TextureFormat Chunk::GetUVs(BlockType type) {

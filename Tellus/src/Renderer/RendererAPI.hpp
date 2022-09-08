@@ -10,6 +10,7 @@ class RendererAPI {
    public:
     static void SetClearColor(const glm::vec4& color);
     static void Clear();
+    static void DrawArray(const Ref<VertexArray>& va);
     static void DrawIndexed(const Ref<VertexArray>& va);
 
     static void SetDepthFunc(unsigned int func);

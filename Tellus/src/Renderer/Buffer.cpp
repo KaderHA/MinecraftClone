@@ -23,6 +23,7 @@ VertexBuffer::VertexBuffer(float* vertices, unsigned int byteSize, const BufferL
     glCreateBuffers(1, &m_RenderID);
     glBindBuffer(GL_ARRAY_BUFFER, m_RenderID);
     glBufferData(GL_ARRAY_BUFFER, byteSize, vertices, GL_STATIC_DRAW);
+    m_VertexCount = byteSize / (layout.GetStride() * sizeof(float));
     m_Layout = layout;
 }
 
@@ -54,6 +55,11 @@ void IndexBuffer::Unbind() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
 
 VertexArray::VertexArray() : m_IndexBuffer(nullptr) {
     glCreateVertexArrays(1, &m_RenderID);
+}
+
+VertexArray::VertexArray(const Ref<VertexBuffer>& vb) : m_IndexBuffer(nullptr) {
+    glCreateVertexArrays(1, &m_RenderID);
+    this->AddVertexBuffer(vb);
 }
 
 VertexArray::VertexArray(const Ref<VertexBuffer>& vb, const Ref<IndexBuffer>& ib) {

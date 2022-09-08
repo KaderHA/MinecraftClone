@@ -32,9 +32,6 @@ class Chunk {
     static const int CHUNK_SIZE = CHUNK_DEPTH * CHUNK_HEIGHT * CHUNK_WIDTH;
 
    private:
-    unsigned int* CreateIndices();
-
-   private:
     ts::Ref<ts::VertexArray> m_VertexArray;
     Block* m_Blocks;
     // Chunk(0,0), Chunk(1, 0) etc.

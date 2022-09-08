@@ -24,7 +24,10 @@ void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Shader>& shader) {
     shader->Bind();
     shader->setMat4fv("uViewProjection", VP);
     va->Bind();
-    RendererAPI::DrawIndexed(va);
+    if (va->HasIndexBuffer())
+        RendererAPI::DrawIndexed(va);
+    else
+        RendererAPI::DrawArray(va);
 }
 void Renderer::SetDepthFunc(DepthFunc func) {
     RendererAPI::SetDepthFunc(static_cast<unsigned int>(func));
