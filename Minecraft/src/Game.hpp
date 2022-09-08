@@ -2,7 +2,6 @@
 #define TS_MAIN
 #include <Tellus.hpp>
 #include "Chunk.hpp"
-#include "TextureAtlas.hpp"
 
 struct ChunkPositionHash {
     // http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
@@ -27,9 +26,10 @@ class Game : public ts::Layer {
     ts::Scope<Chunk> m_Chunk;
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Camera m_Camera;
-    ts::Ref<ts::Texture2D> m_Texture;
-    ts::Ref<TextureAtlas> m_WorldTexture;
     ts::Ref<ts::Shader> m_Shader;
+
+    ts::Ref<ts::Texture2D> m_Texture;
+    ts::Ref<ts::TextureBuffer> m_TexCoordBuffer;
 
     ts::Ref<Skybox> m_Skybox;
     ts::Ref<ts::Shader> m_SkyBoxShader;

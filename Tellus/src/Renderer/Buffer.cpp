@@ -27,6 +27,14 @@ VertexBuffer::VertexBuffer(float* vertices, unsigned int byteSize, const BufferL
     m_Layout = layout;
 }
 
+VertexBuffer::VertexBuffer(unsigned int* vertices, unsigned int byteSize, const BufferLayout& layout) {
+    glCreateBuffers(1, &m_RenderID);
+    glBindBuffer(GL_ARRAY_BUFFER, m_RenderID);
+    glBufferData(GL_ARRAY_BUFFER, byteSize, vertices, GL_STATIC_DRAW);
+    m_VertexCount = byteSize / (layout.GetStride() * sizeof(unsigned int));
+    m_Layout = layout;
+}
+
 VertexBuffer::~VertexBuffer() { glDeleteBuffers(1, &m_RenderID); }
 
 void VertexBuffer::Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_RenderID); }
@@ -88,7 +96,10 @@ void VertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
 
     for (const auto& e : layout.GetElements()) {
         glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, e.Count, e.Type, GL_FALSE, layout.GetStride() * sizeof(e.Type), (const void*)((e.Offset * sizeof(e.Type))));
+        if (e.Type == GL_UNSIGNED_INT)
+            glVertexAttribIPointer(index, e.Count, e.Type, layout.GetStride() * sizeof(unsigned int), (const void*)((e.Offset * sizeof(e.Type))));
+        else
+            glVertexAttribPointer(index, e.Count, e.Type, GL_FALSE, layout.GetStride() * sizeof(float), (const void*)((e.Offset * sizeof(e.Type))));
         index++;
     }
     m_VertexBuffers.push_back(vertexBuffer);

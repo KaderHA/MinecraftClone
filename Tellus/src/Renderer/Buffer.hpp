@@ -47,6 +47,7 @@ class VertexBuffer {
    public:
     VertexBuffer(float* vertices, unsigned int byteSize);
     VertexBuffer(float* vertices, unsigned int byteSize, const BufferLayout& layout);
+    VertexBuffer(unsigned int* vertices, unsigned int byteSize, const BufferLayout& layout);
     ~VertexBuffer();
     void Bind() const;
     void Unbind() const;

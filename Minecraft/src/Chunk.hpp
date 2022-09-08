@@ -2,7 +2,6 @@
 #include <Tellus.hpp>
 #include "Block.hpp"
 
-class TextureAtlas;
 struct TextureFormat {
     unsigned int top;
     unsigned int side;
@@ -17,19 +16,19 @@ class Chunk {
     void Init(glm::ivec3 localChunkPosition = glm::ivec3(0));
 
     void Generate();
-    void CreateMesh(const ts::Ref<TextureAtlas>& texture);
+    void CreateMesh();
 
     const ts::Ref<ts::VertexArray>& GetVAO() const { return m_VertexArray; }
     glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
 
-    // TODO
-    // static TextureFormat GetUVs(BlockType type);
-
    public:
-    static const int CHUNK_WIDTH = 16;
-    static const int CHUNK_HEIGHT = 64;
-    static const int CHUNK_DEPTH = 16;
+    static const int CHUNK_WIDTH = 32;
+    static const int CHUNK_HEIGHT = 32;
+    static const int CHUNK_DEPTH = 32;
     static const int CHUNK_SIZE = CHUNK_DEPTH * CHUNK_HEIGHT * CHUNK_WIDTH;
+
+   private:
+    TextureFormat GetUVs(BlockType type);
 
    private:
     ts::Ref<ts::VertexArray> m_VertexArray;
