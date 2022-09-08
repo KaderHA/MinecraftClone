@@ -27,7 +27,7 @@ class Application {
     static Application* s_Instance;
     Window* m_Window;
 
-    bool m_Running;
+    bool m_Running = true;
     LayerStack m_LayerStack;
 };
 

@@ -1,9 +1,9 @@
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/*.hpp" "src/*.h")
 add_executable(Minecraft ${SOURCES})
 
-# if(MSVC)
-# set_property(TARGET Game PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:DEBUG>:Debug>")
-# endif()
+if(MSVC)
+    set_property(TARGET Minecraft PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:Minecraft>)
+endif()
 
 # add_custom_command(TARGET Game POST_BUILD        # Adds a post-build event to MyTest
 # COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
