@@ -18,8 +18,9 @@ class Chunk {
     void Generate();
     void CreateMesh();
 
-    const ts::Ref<ts::VertexArray>& GetVAO() const { return m_VertexArray; }
+    const ts::Ref<ts::VertexArray>& GetVertexArray() const { return m_VertexArray; }
     glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
+    glm::vec3 GetPosition() const { return m_LocalChunkPosition; }
 
    public:
     static const int CHUNK_WIDTH = 32;

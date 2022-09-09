@@ -20,9 +20,12 @@ class Game : public ts::Layer {
     void OnUpdate() override;
     void OnEvent(ts::Event& event) override;
 
+    void LoadChunks(const glm::vec3& position);
+
    private:
     // std::unordered_map<glm::ivec3, Chunk, ChunkPositionHash> m_ChunkMap;
-    Chunk* m_Chunks;
+    std::vector<ts::Ref<Chunk>> m_Chunks;
+    //Chunk* m_Chunks;
     ts::Scope<Chunk> m_Chunk;
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Camera m_Camera;

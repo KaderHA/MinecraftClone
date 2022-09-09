@@ -26,19 +26,21 @@ void Chunk::Generate() {
     noise.SetFractalOctaves(5);
     noise.SetFractalLacunarity(1.8f);
 
+
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                int height = (int)((noise.GetNoise((float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f, (float)(z + m_LocalChunkPosition.z * CHUNK_DEPTH) / 2.f)) * (CHUNK_HEIGHT));
+                int height = (int)((noise.GetNoise((float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f, (float)(z + m_LocalChunkPosition.z * CHUNK_DEPTH) / 2.f)) * (128)) + 64;
+                int yHeight = y + (m_LocalChunkPosition.y * CHUNK_HEIGHT);
 
-                if (y < height && y >= height - 10)
+                if (yHeight < height && yHeight >= height - 10)
                     m_Blocks[index].SetBlockType(BlockType::Dirt);
-                if (y < height - 10 && y > 0)
+                if (yHeight < height - 10 && yHeight > 0)
                     m_Blocks[index].SetBlockType(BlockType::Stone);
-                if (y == height)
+                if (yHeight == height)
                     m_Blocks[index].SetBlockType(BlockType::Grass);
-                if (y == 0)
+                if (yHeight == 0)
                     m_Blocks[index].SetBlockType(BlockType::Bedrock);
 
                 // Circle generation
