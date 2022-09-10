@@ -17,15 +17,20 @@ class Game : public ts::Layer {
     Game();
     ~Game();
 
-    void OnUpdate() override;
+    void OnUpdate(float dt) override;
     void OnEvent(ts::Event& event) override;
 
-    void LoadChunks(const glm::vec3& position);
+    static void ChunkWorker(std::vector<ts::Ref<Chunk>>* loadlist, bool* load);
+
+    void LoadChunks();
+    void UnloadChunks();
+    void UploadToGPU();
 
    private:
     // std::unordered_map<glm::ivec3, Chunk, ChunkPositionHash> m_ChunkMap;
     std::vector<ts::Ref<Chunk>> m_Chunks;
-    //Chunk* m_Chunks;
+    std::vector<ts::Ref<Chunk>> m_ChunkLoadList;
+    // Chunk* m_Chunks;
     ts::Scope<Chunk> m_Chunk;
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Camera m_Camera;
@@ -36,6 +41,10 @@ class Game : public ts::Layer {
 
     ts::Ref<Skybox> m_Skybox;
     ts::Ref<ts::Shader> m_SkyBoxShader;
+
+    bool m_LoadChunks;
+
+    std::vector<std::future<void>> m_Futures;
 };
 
 class App : public ts::Application {

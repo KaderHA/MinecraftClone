@@ -31,7 +31,7 @@ class Camera {
     glm::mat4 GetViewProjection() const { return (m_Projection * glm::lookAt(m_Position, m_Position + m_Front, m_Up)); }
     glm::mat4 GetView() const { return glm::lookAt(m_Position, m_Position + m_Front, m_Up); }
     glm::mat4 GetProjection() const { return m_Projection; }
-    glm::vec3 GetCameraPosition() const { return m_Position; }
+    glm::vec3 GetPosition() const { return m_Position; }
 
    private:
     void updateVectors();

@@ -27,8 +27,10 @@ class Window {
 
     void OnUpdate();
 
-    inline unsigned int GetWidth() { return m_Data.Width; }
-    inline unsigned int GetHeight() { return m_Data.Height; }
+    inline unsigned int GetWidth() const { return m_Data.Width; }
+    inline unsigned int GetHeight() const { return m_Data.Height; }
+
+    float GetTime() const;
 
     void SetCallback(const Callback& func);
     void* GetNativeWindow() { return m_Native; }

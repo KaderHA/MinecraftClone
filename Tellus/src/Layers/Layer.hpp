@@ -12,7 +12,7 @@ class Layer {
 
     virtual void OnAttach() {}
     virtual void OnDetach() {}
-    virtual void OnUpdate() {}
+    virtual void OnUpdate(float dt) {}
     virtual void OnEvent(Event& event) {}
 
     inline const char* GetName() const { return m_DebugName; }

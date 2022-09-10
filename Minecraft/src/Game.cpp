@@ -1,8 +1,9 @@
 #include "Game.hpp"
 #include "Skybox.hpp"
 
-#define CHUNK_RADIUS 2
-#define MAX_LOAD_PER_FRAME 1
+#define CHUNK_RADIUS 4
+
+static std::mutex ChunksMutex;
 
 App::App() {
     PushLayer(new Game);
@@ -41,26 +42,20 @@ Game::Game() : Layer("GameLayer") {
     // m_Chunk->Generate();
     // m_Chunk->CreateMesh();
     ts::Renderer::SetDepthMask(true);
+    // m_Futures.push_back(std::async(std::launch::async, Game::ChunkWorker, &m_ChunkLoadList, &m_LoadChunks));
 }
 
-Game::~Game() {}
+Game::~Game() {
+    m_LoadChunks = false;
+}
 
-void Game::OnUpdate() {
-    m_Camera.OnUpdate(.01f);
+void Game::OnUpdate(float dt) {
+    m_Camera.OnUpdate(dt);
     ts::Renderer::BeginScene(m_Camera);
 
     m_Shader->Bind();
     m_Texture->Bind();
     m_TexCoordBuffer->Bind(1);
-    // m_Shader->setMat4fv("uModel", m_Chunk->GetModelMatrix());
-    // ts::Renderer::Submit(m_Chunk->GetVAO(), m_Shader);
-
-    //for (int x = 0, i = 0; x < 4; x++) {
-        //for (int z = 0; z < 4; z++, i++) {
-            //m_Shader->setMat4fv("uModel", m_Chunks[i].GetModelMatrix());
-            //ts::Renderer::Submit(m_Chunks[i].GetVertexArray(), m_Shader);
-        //}
-    //}
 
     for (auto itr : m_Chunks) {
         m_Shader->setMat4fv("uModel", itr->GetModelMatrix());
@@ -80,11 +75,13 @@ void Game::OnUpdate() {
     else
         m_Camera.SetSpeed(1.0f);
 
-
-    LoadChunks(m_Camera.GetCameraPosition());
+    // LoadChunks(m_Camera.GetCameraPosition());
     if (ts::Input::IsKeyPressed(TS_KEY_DELETE) && m_Chunks.size() > 0) {
         m_Chunks.pop_back();
     }
+
+    UnloadChunks();
+    LoadChunks();
 }
 
 void Game::OnEvent(ts::Event& e) {
@@ -119,35 +116,64 @@ ts::Ref<ts::TextureBuffer> CreateTexCoordBuffer(const ts::Ref<ts::Texture>& text
     return tb;
 }
 
-void Game::LoadChunks(const glm::vec3& position) {
-    int nrOfLoad = 0;
-    int startZ = (position.z / Chunk::CHUNK_DEPTH) - CHUNK_RADIUS;
-    int endZ = (position.z / Chunk::CHUNK_DEPTH) + CHUNK_RADIUS;
+void Game::ChunkWorker(std::vector<ts::Ref<Chunk>>* loadlist, bool* load) {
+    while (*load) {
+        std::lock_guard<std::mutex> lock(ChunksMutex);
+        for (int i = 0; i < loadlist->size(); i++) {
+            if (!loadlist->at(i)->IsLoaded()) {
+                glm::vec3 pos = loadlist->at(i)->GetPosition();
+                // std::cout << "Chunk: {" << pos.x << ", " << pos.y << ", " << pos.z << "} Loaded\n";
+                loadlist->at(i)->Generate();
+                loadlist->at(i)->CreateMesh();
+            }
+            loadlist->clear();
+        }
+    }
+}
+
+void Game::LoadChunks() {
+    int startZ = (m_Camera.GetPosition().z / Chunk::CHUNK_DEPTH) - CHUNK_RADIUS;
+    int endZ = (m_Camera.GetPosition().z / Chunk::CHUNK_DEPTH) + CHUNK_RADIUS;
 
     int endY = 256 / Chunk::CHUNK_HEIGHT;
 
-    int startX = (position.x / Chunk::CHUNK_WIDTH) - CHUNK_RADIUS;
-    int endX = (position.x / Chunk::CHUNK_WIDTH) + CHUNK_RADIUS;
+    int startX = (m_Camera.GetPosition().x / Chunk::CHUNK_WIDTH) - CHUNK_RADIUS;
+    int endX = (m_Camera.GetPosition().x / Chunk::CHUNK_WIDTH) + CHUNK_RADIUS;
 
     for (int z = startZ; z < endZ; z++) {
         for (int y = 0; y < endY; y++) {
             for (int x = startX; x < endX; x++) {
                 glm::vec3 pos(x, y, z);
-                if (std::find_if(m_Chunks.begin(), m_Chunks.end(), 
-                    [pos](ts::Ref<Chunk>& chunk) {
-                        return chunk->GetPosition() == pos;
-                    }) == m_Chunks.end()) {
-                    std::cout << "Chunk: {" << x << ", " << y << ", " << z << "}" << '\n';
+                if (std::find_if(m_Chunks.begin(), m_Chunks.end(), [pos](ts::Ref<Chunk> chunk) { return chunk->GetPosition() == pos; }) == m_Chunks.end()) {
+                    //std::cout << "Chunk: {" << x << ", " << y << ", " << z << "} Loaded\n";
                     ts::Ref<Chunk> chunk(new Chunk);
-                    chunk->Init({ x, y, z });
+                    chunk->Init({x, y, z});
+                    chunk->Generate();
                     chunk->CreateMesh();
+                    chunk->UploadToGPU();
                     m_Chunks.push_back(chunk);
-                    nrOfLoad++;
+                    return;
                 }
-                if (nrOfLoad == MAX_LOAD_PER_FRAME) break;
             }
-            if (nrOfLoad == MAX_LOAD_PER_FRAME) break;
         }
-        if (nrOfLoad == MAX_LOAD_PER_FRAME) break;
+    }
+}
+
+void Game::UnloadChunks() {
+    for (int i = 0; i < m_Chunks.size(); ++i) {
+        glm::vec2 camChunkCoords(m_Camera.GetPosition().x / Chunk::CHUNK_WIDTH, m_Camera.GetPosition().z / Chunk::CHUNK_DEPTH);
+        glm::ivec2 chunkSpace = {m_Chunks[i]->GetPosition().x - camChunkCoords.x, m_Chunks[i]->GetPosition().z - camChunkCoords.y};
+
+        if (abs(chunkSpace.x) > CHUNK_RADIUS || abs(chunkSpace.y) > CHUNK_RADIUS) {
+            m_Chunks.erase(std::remove(m_Chunks.begin(), m_Chunks.end(), m_Chunks[i]), m_Chunks.end());
+        }
+    }
+}
+
+void Game::UploadToGPU() {
+    for (auto itr : m_Chunks) {
+        if (itr->IsLoaded() && !itr->IsUploaded()) {
+            itr->UploadToGPU();
+        }
     }
 }

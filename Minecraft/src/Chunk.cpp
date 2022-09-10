@@ -6,13 +6,12 @@ struct Vertex {
     glm::vec2 TexCoord;
 };
 
-Chunk::Chunk() : m_LocalChunkPosition(glm::vec3(0.f)) {
+Chunk::Chunk() : m_Vertices(nullptr), m_VertexCount(0), m_LocalChunkPosition(glm::vec3(0.f)), m_Loaded(false), m_Uploaded(false) {
     m_Blocks = new Block[CHUNK_SIZE];
 }
 
 void Chunk::Init(glm::ivec3 localChunkPosition) {
     m_LocalChunkPosition = localChunkPosition;
-    this->Generate();
 }
 
 Chunk::~Chunk() {
@@ -25,7 +24,6 @@ void Chunk::Generate() {
     noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
     noise.SetFractalOctaves(5);
     noise.SetFractalLacunarity(1.8f);
-
 
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
@@ -54,7 +52,7 @@ void Chunk::Generate() {
     }
 }
 void Chunk::CreateMesh() {
-    unsigned int* vertices = new unsigned int[CHUNK_SIZE * 36];
+    m_Vertices = new unsigned int[CHUNK_SIZE * 36];
     int block_vertex_index = 0;
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
@@ -63,68 +61,107 @@ void Chunk::CreateMesh() {
                 if (m_Blocks[index].IsActive() == false) continue;
                 glm::vec3 chunkPosition = {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH};
                 // Front
-                TextureFormat blockFormat = this->GetUVs(m_Blocks[index].GetBlockType());
+                TextureFormat format = this->GetUVs(m_Blocks[index].GetBlockType());
 
-                // Front
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z + 1) << 12) | (0 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z + 1) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z + 1) << 12) | (3 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z + 1) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z + 1) << 12) | (2 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z + 1) << 12) | (3 << 18) | (blockFormat.side << 20);
+                bool lXNegative = false;
+                if (x > 0) lXNegative = m_Blocks[index - 1].IsActive();
+                bool lXPositive = false;
+                if (x < CHUNK_WIDTH - 1) lXPositive = m_Blocks[index + 1].IsActive();
+                bool lYNegative = false;
+                if (y > 0) lYNegative = m_Blocks[index - CHUNK_WIDTH].IsActive();
+                bool lYPositive = false;
+                if (y < CHUNK_HEIGHT - 1) lYPositive = m_Blocks[index + CHUNK_WIDTH].IsActive();
+                bool lZNegative = false;
+                if (z > 0) lZNegative = m_Blocks[index - (CHUNK_HEIGHT * CHUNK_WIDTH)].IsActive();
+                bool lZPositive = false;
+                if (z < CHUNK_DEPTH - 1) lZPositive = m_Blocks[index + (CHUNK_HEIGHT * CHUNK_WIDTH)].IsActive();
 
-                // Back
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z) << 12) | (0 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z) << 12) | (3 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z) << 12) | (2 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z) << 12) | (3 << 18) | (blockFormat.side << 20);
-
-                // Right
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z + 1) << 12) | (0 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z + 1) << 12) | (3 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z) << 12) | (2 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z + 1) << 12) | (3 << 18) | (blockFormat.side << 20);
-
-                // Left
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z) << 12) | (0 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z + 1) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z) << 12) | (3 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z + 1) << 12) | (1 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z + 1) << 12) | (2 << 18) | (blockFormat.side << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z) << 12) | (3 << 18) | (blockFormat.side << 20);
-
-                // Top
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z + 1) << 12) | (0 << 18) | (blockFormat.top << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z + 1) << 12) | (1 << 18) | (blockFormat.top << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z) << 12) | (3 << 18) | (blockFormat.top << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z + 1) << 12) | (1 << 18) | (blockFormat.top << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y + 1) << 6) | ((z) << 12) | (2 << 18) | (blockFormat.top << 20);
-                vertices[block_vertex_index++] = (x) | ((y + 1) << 6) | ((z) << 12) | (3 << 18) | (blockFormat.top << 20);
-
-                // Bottom
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z) << 12) | (0 << 18) | (blockFormat.bottom << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z) << 12) | (1 << 18) | (blockFormat.bottom << 20);
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z + 1) << 12) | (3 << 18) | (blockFormat.bottom << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z) << 12) | (1 << 18) | (blockFormat.bottom << 20);
-                vertices[block_vertex_index++] = (x + 1) | ((y) << 6) | ((z + 1) << 12) | (2 << 18) | (blockFormat.bottom << 20);
-                vertices[block_vertex_index++] = (x) | ((y) << 6) | ((z + 1) << 12) | (3 << 18) | (blockFormat.bottom << 20);
+                if (!lZPositive)
+                    CreateFace(m_Vertices, block_vertex_index, {x, y, z}, format.side, BlockFace::Front);
+                if (!lZNegative)
+                    CreateFace(m_Vertices, block_vertex_index, {x, y, z}, format.side, BlockFace::Back);
+                if (!lXPositive)
+                    CreateFace(m_Vertices, block_vertex_index, {x, y, z}, format.side, BlockFace::Right);
+                if (!lXNegative)
+                    CreateFace(m_Vertices, block_vertex_index, {x, y, z}, format.side, BlockFace::Left);
+                if (!lYPositive)
+                    CreateFace(m_Vertices, block_vertex_index, {x, y, z}, format.top, BlockFace::Top);
+                if (!lYNegative)
+                    CreateFace(m_Vertices, block_vertex_index, {x, y, z}, format.bottom, BlockFace::Bottom);
             }
         }
     }
 
-    ts::BufferLayout layout = {{0x1405, 1}};
-    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(vertices, (CHUNK_SIZE * 36 * sizeof(unsigned int)), layout));
-    m_VertexArray.reset(new ts::VertexArray(vb));
+    m_VertexCount = block_vertex_index;
+    m_Loaded = true;
+}
 
-    delete[] vertices;
+void Chunk::CreateFace(unsigned int* vertices, int& index, glm::ivec3 pos, unsigned int format, BlockFace face) {
+    switch (face) {
+        case BlockFace::Front:
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (0 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (3 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (2 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (3 << 18) | (format << 20);
+            break;
+        case BlockFace::Back:
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z) << 12) | (0 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (3 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (2 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (3 << 18) | (format << 20);
+            break;
+        case BlockFace::Right:
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (0 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (3 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (2 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (3 << 18) | (format << 20);
+            break;
+        case BlockFace::Left:
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z) << 12) | (0 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (3 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (2 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (3 << 18) | (format << 20);
+            break;
+        case BlockFace::Top:
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (0 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (3 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z + 1) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (2 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y + 1) << 6) | ((pos.z) << 12) | (3 << 18) | (format << 20);
+            break;
+        case BlockFace::Bottom:
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z) << 12) | (0 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (3 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z) << 12) | (1 << 18) | (format << 20);
+            vertices[index++] = (pos.x + 1) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (2 << 18) | (format << 20);
+            vertices[index++] = (pos.x) | ((pos.y) << 6) | ((pos.z + 1) << 12) | (3 << 18) | (format << 20);
+            break;
+        default:
+            TS_ASSERT(0, "No face given!");
+            break;
+    }
+}
+
+void Chunk::UploadToGPU() {
+    ts::BufferLayout layout = {{0x1405, 1}};
+    ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(m_Vertices, m_VertexCount * sizeof(unsigned int), layout));
+    m_VertexArray.reset(new ts::VertexArray(vb));
+    delete[] m_Vertices;
+    m_Uploaded = true;
 }
 
 TextureFormat Chunk::GetUVs(BlockType type) {
-    TextureFormat tf;
+    TextureFormat tf = {0 ,0, 0};
 
     switch (type) {
         case BlockType::Grass:

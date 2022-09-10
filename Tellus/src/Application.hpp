@@ -28,6 +28,8 @@ class Application {
     Window* m_Window;
 
     bool m_Running = true;
+    float m_LastFrame;
+
     LayerStack m_LayerStack;
 };
 

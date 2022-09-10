@@ -8,6 +8,15 @@ struct TextureFormat {
     unsigned int bottom;
 };
 
+enum class BlockFace {
+    Front,
+    Back,
+    Right,
+    Left,
+    Top,
+    Bottom
+};
+
 class Chunk {
    public:
     Chunk();
@@ -17,10 +26,16 @@ class Chunk {
 
     void Generate();
     void CreateMesh();
+    void UploadToGPU();
 
     const ts::Ref<ts::VertexArray>& GetVertexArray() const { return m_VertexArray; }
     glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
     glm::vec3 GetPosition() const { return m_LocalChunkPosition; }
+
+    inline bool IsLoaded() const { return m_Loaded; }
+    inline bool IsUploaded() const { return m_Uploaded; }
+
+    void CreateFace(unsigned int* vertices, int& index, glm::ivec3 pos, unsigned int texture, BlockFace face);
 
    public:
     static const int CHUNK_WIDTH = 32;
@@ -32,6 +47,9 @@ class Chunk {
     TextureFormat GetUVs(BlockType type);
 
    private:
+    unsigned int* m_Vertices;
+    bool m_Loaded, m_Uploaded;
+    int m_VertexCount;
     ts::Ref<ts::VertexArray> m_VertexArray;
     Block* m_Blocks;
     // Chunk(0,0), Chunk(1, 0) etc.

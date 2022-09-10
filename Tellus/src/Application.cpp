@@ -21,6 +21,10 @@ void Application::Run() {
     while (m_Running) {
         m_Window->OnUpdate();
 
+        float time = m_Window->GetTime();
+        float dt = time - m_LastFrame;
+        m_LastFrame = time;
+
         // TODO -> Make client able to end the game loop
         if (Input::IsKeyPressed(TS_KEY_ESCAPE)) m_Running = false;
 
@@ -31,7 +35,7 @@ void Application::Run() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         for (Layer* layer : m_LayerStack)
-            layer->OnUpdate();
+            layer->OnUpdate(dt);
     }
 }
 

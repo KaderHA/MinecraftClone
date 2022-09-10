@@ -15,6 +15,10 @@ Window::Window(const char* title, int width, int height, unsigned int flags) {
     int success = glfwInit();
     TS_ASSERT(success, "GLFW failed to initialize.");
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     m_Native = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title, nullptr, nullptr);
     glfwMakeContextCurrent(m_Native);
 
@@ -26,6 +30,7 @@ Window::Window(const char* title, int width, int height, unsigned int flags) {
     glViewport(0, 0, m_Data.Width, m_Data.Height);
 
     glfwSetWindowUserPointer(m_Native, &m_Data);
+
 
     // Callbacks
     glfwSetWindowSizeCallback(m_Native, [](GLFWwindow* window, int width, int height) {
@@ -112,6 +117,11 @@ Window::~Window() {}
 void Window::OnUpdate() {
     glfwPollEvents();
     glfwSwapBuffers(m_Native);
+}
+
+float Window::GetTime() const
+{
+    return glfwGetTime();
 }
 
 void Window::SetCallback(const Callback& func) {
