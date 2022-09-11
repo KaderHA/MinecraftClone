@@ -1,7 +1,7 @@
 #include "Game.hpp"
 #include "Skybox.hpp"
 
-#define CHUNK_RADIUS 4
+#define CHUNK_RADIUS 8
 
 static std::mutex ChunksMutex;
 
@@ -73,7 +73,7 @@ void Game::OnUpdate(float dt) {
     if (ts::Input::IsKeyPressed(TS_KEY_LEFT_SHIFT))
         m_Camera.SetSpeed(100.f);
     else
-        m_Camera.SetSpeed(1.0f);
+        m_Camera.SetSpeed(10.0f);
 
     // LoadChunks(m_Camera.GetCameraPosition());
     if (ts::Input::IsKeyPressed(TS_KEY_DELETE) && m_Chunks.size() > 0) {
@@ -145,7 +145,7 @@ void Game::LoadChunks() {
             for (int x = startX; x < endX; x++) {
                 glm::vec3 pos(x, y, z);
                 if (std::find_if(m_Chunks.begin(), m_Chunks.end(), [pos](ts::Ref<Chunk> chunk) { return chunk->GetPosition() == pos; }) == m_Chunks.end()) {
-                    //std::cout << "Chunk: {" << x << ", " << y << ", " << z << "} Loaded\n";
+                    // std::cout << "Chunk: {" << x << ", " << y << ", " << z << "} Loaded\n";
                     ts::Ref<Chunk> chunk(new Chunk);
                     chunk->Init({x, y, z});
                     chunk->Generate();

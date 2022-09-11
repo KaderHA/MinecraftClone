@@ -1,6 +1,8 @@
 #include "Chunk.hpp"
 #include "FastNoiseLite.h"
 
+#define WATER_LEVEL 120
+
 struct Vertex {
     glm::vec3 Position;
     glm::vec2 TexCoord;
@@ -20,33 +22,31 @@ Chunk::~Chunk() {
 
 void Chunk::Generate() {
     FastNoiseLite noise;
-    noise.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_OpenSimplex2);
+    noise.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_Perlin);
     noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
-    noise.SetFractalOctaves(5);
-    noise.SetFractalLacunarity(1.8f);
+    noise.SetFractalOctaves(16);
+    noise.SetFractalLacunarity(2.f);
+    noise.SetFractalGain(0.5f);
 
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                int height = (int)((noise.GetNoise((float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f, (float)(z + m_LocalChunkPosition.z * CHUNK_DEPTH) / 2.f)) * (128)) + 64;
+                int height = (int)((((noise.GetNoise((float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f, (float)(z + m_LocalChunkPosition.z * CHUNK_DEPTH) / 2.f)) + 1) / 2.f) * 255);
                 int yHeight = y + (m_LocalChunkPosition.y * CHUNK_HEIGHT);
 
                 if (yHeight < height && yHeight >= height - 10)
                     m_Blocks[index].SetBlockType(BlockType::Dirt);
-                if (yHeight < height - 10 && yHeight > 0)
+                else if (yHeight < height - 10 && yHeight > 0)
                     m_Blocks[index].SetBlockType(BlockType::Stone);
-                if (yHeight == height)
+                else if (yHeight == height)
                     m_Blocks[index].SetBlockType(BlockType::Grass);
-                if (yHeight == 0)
+                else if (yHeight == 0)
                     m_Blocks[index].SetBlockType(BlockType::Bedrock);
 
-                // Circle generation
-                // int average = (CHUNK_WIDTH + CHUNK_HEIGHT + CHUNK_DEPTH) / 3;
-                // if (sqrt((float)(x - CHUNK_WIDTH / 2) * (x - CHUNK_WIDTH / 2) + (y - CHUNK_HEIGHT / 2) * (y - CHUNK_HEIGHT / 2) + (z - CHUNK_DEPTH / 2) * (z - CHUNK_DEPTH / 2)) <= average / 2) {
-                //     int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                //     m_Blocks[index].SetBlockType(BlockType::Grass);
-                // }
+                if (height <= WATER_LEVEL && yHeight == WATER_LEVEL) {
+                    m_Blocks[index].SetBlockType(BlockType::Water);
+                }
             }
         }
     }
@@ -161,7 +161,7 @@ void Chunk::UploadToGPU() {
 }
 
 TextureFormat Chunk::GetUVs(BlockType type) {
-    TextureFormat tf = {0 ,0, 0};
+    TextureFormat tf = {0, 0, 0};
 
     switch (type) {
         case BlockType::Grass:
@@ -171,22 +171,19 @@ TextureFormat Chunk::GetUVs(BlockType type) {
             break;
 
         case BlockType::Dirt:
-            tf.top = 2;
-            tf.side = 2;
-            tf.bottom = 2;
+            tf = {2, 2, 2};
             break;
+
         case BlockType::Stone:
-            tf.top = 1;
-            tf.side = 1;
-            tf.bottom = 1;
+            tf = {1, 1, 1};
             break;
+
         case BlockType::Bedrock:
-            tf.top = 17;
-            tf.side = 17;
-            tf.bottom = 17;
+            tf = {17, 17, 17};
             break;
-        default:
-            break;
+
+        case BlockType::Water:
+            tf = {205, 205, 205};
     }
 
     return tf;
