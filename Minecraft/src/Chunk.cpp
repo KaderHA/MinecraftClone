@@ -20,6 +20,8 @@ Chunk::~Chunk() {
     delete[] m_Blocks;
 }
 
+using NeighborCallback = std::function<bool>(BlockFace face);
+
 void Chunk::Generate() {
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_Perlin);

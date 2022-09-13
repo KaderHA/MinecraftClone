@@ -3,13 +3,6 @@
 #include <Tellus.hpp>
 #include "Chunk.hpp"
 
-struct ChunkPositionHash {
-    // http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
-    std::size_t operator()(const glm::ivec3& position) const {
-        return (position.x * 88339) ^ (position.z * 91967) ^ (position.z * 126323);
-    }
-};
-
 class Skybox;
 
 class Game : public ts::Layer {
@@ -20,14 +13,13 @@ class Game : public ts::Layer {
     void OnUpdate(float dt) override;
     void OnEvent(ts::Event& event) override;
 
-    static void ChunkWorker(std::vector<ts::Ref<Chunk>>* loadlist, bool* load);
+    // static void ChunkWorker(std::vector<ts::Ref<Chunk>>* loadlist, bool* load);
 
-    void LoadChunks();
-    void UnloadChunks();
-    void UploadToGPU();
+    // void LoadChunks();
+    // void UnloadChunks();
+    // void UploadToGPU();
 
    private:
-    // std::unordered_map<glm::ivec3, Chunk, ChunkPositionHash> m_ChunkMap;
     std::vector<ts::Ref<Chunk>> m_Chunks;
     std::vector<ts::Ref<Chunk>> m_ChunkLoadList;
     // Chunk* m_Chunks;

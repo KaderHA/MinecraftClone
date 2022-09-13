@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <filesystem>
 #include <future>
+#include <bitset>
+#include <set>
 
 #include <string>
 #include <sstream>
