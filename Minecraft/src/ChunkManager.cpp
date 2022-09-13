@@ -1,7 +1,7 @@
 #include "ChunkManager.hpp"
 #include "Chunk.hpp"
 
-#define CHUNK_RADIUS 4
+#define CHUNK_RADIUS 8
 
 std::vector<ts::Ref<Chunk>> ChunkManager::Chunks;
 std::unordered_set<glm::ivec3, ChunkPositionHash> ChunkManager::m_LoadedChunks;
@@ -14,6 +14,7 @@ void ChunkManager::Update(glm::vec3 cameraPosition) {
 }
 
 void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
+    int loadNr = 0;
     int startZ = (int)(cameraPosition.z / Chunk::CHUNK_DEPTH) - CHUNK_RADIUS;
     int endZ = (int)(cameraPosition.z / Chunk::CHUNK_DEPTH) + CHUNK_RADIUS;
 
@@ -29,7 +30,9 @@ void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
                 if (m_LoadedChunks.find(pos) == m_LoadedChunks.end()) {
                     m_LoadList.push_back(std::async(std::launch::async, Load, pos));
                     m_LoadedChunks.insert(pos);
-                    return;
+                    loadNr++;
+                    if (loadNr > CHUNK_RADIUS)
+                        return;
                 }
             }
         }
@@ -43,8 +46,8 @@ void ChunkManager::UnloadChunks(glm::vec3 cameraPosition) {
 
         if (abs(chunkSpace.x) > CHUNK_RADIUS || abs(chunkSpace.y) > CHUNK_RADIUS) {
             if (Chunks[i]->IsLoaded()) {
-                Chunks.erase(std::remove(Chunks.begin(), Chunks.end(), Chunks[i]), Chunks.end());
                 m_LoadedChunks.erase(Chunks[i]->GetPosition());
+                Chunks.erase(std::remove(Chunks.begin(), Chunks.end(), Chunks[i]), Chunks.end());
             }
         }
     }
