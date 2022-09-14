@@ -5,7 +5,7 @@
 #define CHUNKS_PER_FRAME 2
 
 std::vector<ts::Ref<Chunk>> ChunkManager::Chunks;
-std::unordered_set<ChunkRegister, ChunkPositionHash> ChunkManager::m_ChunkRegister;
+std::unordered_set<glm::ivec3, ChunkPositionHash> ChunkManager::m_LoadedChunks;
 // Multithreaded
 std::queue<std::future<ts::Ref<Chunk>>> ChunkManager::m_LoadList;
 
@@ -14,7 +14,6 @@ std::queue<std::future<ts::Ref<Chunk>>> ChunkManager::m_LoadList;
 
 void ChunkManager::Update(glm::vec3 cameraPosition) {
     LoadChunks(cameraPosition);
-    CheckChunks();
     UnloadChunks(cameraPosition);
     SynchronizeChunks();
 }
@@ -44,9 +43,6 @@ void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
             }
         }
     }
-}
-
-void ChunkManager::CheckChunks() {
 }
 
 void ChunkManager::UnloadChunks(glm::vec3 cameraPosition) {
