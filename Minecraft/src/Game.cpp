@@ -20,32 +20,31 @@ Game::Game() : Layer("GameLayer") {
     m_SkyBoxShader.reset(new ts::Shader("res/shaders/skybox.vs", "res/shaders/skybox.fs"));
 
     // Terrain
-    m_Shader.reset(new ts::Shader("res/shaders/default.vs", "res/shaders/default.fs"));
-    m_Shader->Bind();
-    m_Shader->set1i("uTexture", 0);
-    m_Shader->set1i("uTexUV", 1);
-
+    m_TerrainShader.reset(new ts::Shader("res/shaders/default.vs", "res/shaders/default.fs"));
     m_Texture.reset(new ts::Texture2D("res/textures/terrain.png"));
     m_TexCoordBuffer = CreateTexCoordBuffer(m_Texture, 16, 16);
+
+    m_TerrainShader->Bind();
+    m_TerrainShader->set1i("uTexture", 0);
+    m_TerrainShader->set1i("uTexUV", 1);
+
     ts::Renderer::SetDepthMask(true);
 }
 
-Game::~Game() {
-    m_LoadChunks = false;
-}
+Game::~Game() {}
 
 void Game::OnUpdate(float dt) {
     m_Camera.OnUpdate(dt);
     ts::Renderer::BeginScene(m_Camera);
 
-    m_Shader->Bind();
+    m_TerrainShader->Bind();
     m_Texture->Bind();
     m_TexCoordBuffer->Bind(1);
 
     for (auto itr : ChunkManager::Chunks) {
         if (itr->GetVertexArray()->GetVertexCount() == 0) continue;
-        m_Shader->setMat4fv("uModel", itr->GetModelMatrix());
-        ts::Renderer::Submit(itr->GetVertexArray(), m_Shader);
+        m_TerrainShader->setMat4fv("uModel", itr->GetModelMatrix());
+        ts::Renderer::Submit(itr->GetVertexArray(), m_TerrainShader);
     }
 
     ts::Renderer::SetDepthFunc(ts::DepthFunc::LEQUAL);
@@ -60,10 +59,6 @@ void Game::OnUpdate(float dt) {
         m_Camera.SetSpeed(100.f);
     else
         m_Camera.SetSpeed(10.0f);
-
-    if (ts::Input::IsKeyPressed(TS_KEY_DELETE) && m_Chunks.size() > 0) {
-        m_Chunks.pop_back();
-    }
 
     ChunkManager::Update(m_Camera.GetPosition());
 }

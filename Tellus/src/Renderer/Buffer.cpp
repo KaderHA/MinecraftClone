@@ -97,7 +97,7 @@ void VertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
     for (const auto& e : layout.GetElements()) {
         glEnableVertexAttribArray(index);
         if (e.Type == GL_UNSIGNED_INT)
-            glVertexAttribIPointer(index, e.Count, e.Type, layout.GetStride() * sizeof(unsigned int), (const void*)((e.Offset * sizeof(e.Type))));
+            glVertexAttribIPointer(index, e.Count, e.Type, layout.GetStride() * sizeof(unsigned int), (const void*)((e.Offset * sizeof(unsigned int))));
         else
             glVertexAttribPointer(index, e.Count, e.Type, GL_FALSE, layout.GetStride() * sizeof(float), (const void*)((e.Offset * sizeof(e.Type))));
         index++;

@@ -8,17 +8,15 @@ struct Vertex {
     glm::vec2 TexCoord;
 };
 
-Chunk::Chunk() : m_Vertices(nullptr), m_VertexCount(0), m_LocalChunkPosition(glm::vec3(0.f)), m_Loaded(false), m_Uploaded(false) {
-    m_Blocks = new Block[CHUNK_SIZE];
+Chunk::Chunk() : m_Vertices(nullptr), m_VertexCount(0), m_LocalChunkPosition(glm::vec3(0.f)), m_Loaded(false) {
+    m_Blocks.reset(new Block[CHUNK_SIZE]);
 }
 
 void Chunk::Init(glm::ivec3 localChunkPosition) {
     m_LocalChunkPosition = localChunkPosition;
 }
 
-Chunk::~Chunk() {
-    delete[] m_Blocks;
-}
+Chunk::~Chunk() {}
 
 using NeighborCallback = std::function<bool>(BlockFace face);
 
@@ -34,7 +32,11 @@ void Chunk::Generate() {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                int height = (int)((((noise.GetNoise((float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f, (float)(z + m_LocalChunkPosition.z * CHUNK_DEPTH) / 2.f)) + 1) / 2.f) * 255);
+                float sampleX = (float)(x + m_LocalChunkPosition.x * CHUNK_WIDTH) / 2.f;
+                float sampleZ = (float)(z + m_LocalChunkPosition.z * CHUNK_WIDTH) / 2.f;
+                float nHeight = (noise.GetNoise(sampleX, sampleZ) + 1.0f) / 2.f;
+
+                int height = nHeight * 255;
                 int yHeight = y + (m_LocalChunkPosition.y * CHUNK_HEIGHT);
 
                 if (yHeight < height && yHeight >= height - 10)
@@ -159,7 +161,6 @@ void Chunk::UploadToGPU() {
     ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(m_Vertices, m_VertexCount * sizeof(unsigned int), layout));
     m_VertexArray.reset(new ts::VertexArray(vb));
     delete[] m_Vertices;
-    m_Uploaded = true;
 }
 
 TextureFormat Chunk::GetUVs(BlockType type) {

@@ -33,7 +33,6 @@ class Chunk {
     glm::vec3 GetPosition() const { return m_LocalChunkPosition; }
 
     inline bool IsLoaded() const { return m_Loaded; }
-    inline bool IsUploaded() const { return m_Uploaded; }
 
     void CreateFace(unsigned int* vertices, int& index, glm::ivec3 pos, unsigned int texture, BlockFace face);
 
@@ -48,10 +47,10 @@ class Chunk {
 
    private:
     unsigned int* m_Vertices;
-    bool m_Loaded, m_Uploaded;
+    bool m_Loaded;
     int m_VertexCount;
     ts::Ref<ts::VertexArray> m_VertexArray;
-    Block* m_Blocks;
+    ts::Scope<Block[]> m_Blocks;
     // Chunk(0,0), Chunk(1, 0) etc.
     glm::vec3 m_LocalChunkPosition;
 };
