@@ -24,15 +24,14 @@ class ChunkManager {
 
    private:
     static ts::Ref<Chunk> Load(glm::ivec3 pos);
-    // static void Upload();
     // static void Rebuild();
 
    private:
     // static std::unordered_map<glm::ivec3, ts::Ref<Chunk>, ChunkPositionHash> m_Chunks;
     static std::unordered_set<glm::ivec3, ChunkPositionHash> m_LoadedChunks;
-    // Multithreaded
-    static std::vector<std::future<ts::Ref<Chunk>>> m_LoadList;
 
+    // Multithreaded
+    static std::queue<std::future<ts::Ref<Chunk>>> m_LoadList;
     // SingleThread
     // static std::vector<ts::Ref<Chunk>> m_LoadList;
 };

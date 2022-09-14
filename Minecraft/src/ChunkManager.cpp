@@ -5,15 +5,16 @@
 #define CHUNKS_PER_FRAME 2
 
 std::vector<ts::Ref<Chunk>> ChunkManager::Chunks;
-std::unordered_set<glm::ivec3, ChunkPositionHash> ChunkManager::m_LoadedChunks;
+std::unordered_set<ChunkRegister, ChunkPositionHash> ChunkManager::m_ChunkRegister;
 // Multithreaded
-std::vector<std::future<ts::Ref<Chunk>>> ChunkManager::m_LoadList;
+std::queue<std::future<ts::Ref<Chunk>>> ChunkManager::m_LoadList;
 
 // SingleThread
-//std::vector<ts::Ref<Chunk>> ChunkManager::m_LoadList;
+// std::vector<ts::Ref<Chunk>> ChunkManager::m_LoadList;
 
 void ChunkManager::Update(glm::vec3 cameraPosition) {
     LoadChunks(cameraPosition);
+    CheckChunks();
     UnloadChunks(cameraPosition);
     SynchronizeChunks();
 }
@@ -33,16 +34,19 @@ void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
             for (int y = 0; y < endY; y++) {
                 glm::ivec3 pos(x, y, z);
                 if (m_LoadedChunks.find(pos) == m_LoadedChunks.end()) {
-                     m_LoadList.push_back(std::async(std::launch::async, Load, pos));
-                    //m_LoadList.push_back(Load(pos));
+                    m_LoadList.push(std::async(std::launch::async, Load, pos));
+                    // m_LoadList.push_back(Load(pos));
                     m_LoadedChunks.insert(pos);
                     loadNr++;
-                    if (loadNr > CHUNKS_PER_FRAME)
+                    if (loadNr > 8)
                         return;
                 }
             }
         }
     }
+}
+
+void ChunkManager::CheckChunks() {
 }
 
 void ChunkManager::UnloadChunks(glm::vec3 cameraPosition) {
@@ -59,25 +63,27 @@ void ChunkManager::UnloadChunks(glm::vec3 cameraPosition) {
     }
 }
 
- void ChunkManager::SynchronizeChunks() {
-     for (auto itr = m_LoadList.begin(); itr != m_LoadList.end();) {
-         auto status = itr->wait_for(std::chrono::microseconds(0));
-         if (status == std::future_status::ready) {
-             Chunks.push_back(itr->get());
-             Chunks.back()->UploadToGPU();
-             itr = m_LoadList.erase(itr);
-         } else
-             itr++;
-     }
- }
+void ChunkManager::SynchronizeChunks() {
+    int nrOfLoad = 0;
+    while (m_LoadList.size() != 0 || nrOfLoad >= CHUNKS_PER_FRAME) {
+        auto status = m_LoadList.front().wait_for(std::chrono::microseconds(0));
+        if (status == std::future_status::ready) {
+            Chunks.push_back(m_LoadList.front().get());
+            Chunks.back()->UploadToGPU();
+            m_LoadList.pop();
+        } else {
+            break;
+        }
+    }
+}
 
-//void ChunkManager::SynchronizeChunks() {
-//    for (int i = 0; i < m_LoadList.size(); i++) {
-//        m_LoadList.back()->UploadToGPU();
-//        Chunks.push_back(m_LoadList.back());
-//        m_LoadList.pop_back();
-//    }
-//}
+// void ChunkManager::SynchronizeChunks() {
+//     for (int i = 0; i < m_LoadList.size(); i++) {
+//         m_LoadList.back()->UploadToGPU();
+//         Chunks.push_back(m_LoadList.back());
+//         m_LoadList.pop_back();
+//     }
+// }
 
 ts::Ref<Chunk> ChunkManager::Load(glm::ivec3 pos) {
     ts::Ref<Chunk> chunk(new Chunk());
@@ -86,9 +92,6 @@ ts::Ref<Chunk> ChunkManager::Load(glm::ivec3 pos) {
     chunk->CreateMesh();
     return chunk;
 }
-
-// void ChunkManager::Upload() {
-// }
 
 // void ChunkManager::Rebuild() {
 // }

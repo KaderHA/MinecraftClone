@@ -10,6 +10,7 @@
 #include <future>
 #include <bitset>
 #include <set>
+#include <queue>
 
 #include <string>
 #include <sstream>

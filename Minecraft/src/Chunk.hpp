@@ -24,6 +24,9 @@ class Chunk {
 
     void Init(glm::ivec3 localChunkPosition = glm::ivec3(0));
 
+    bool operator==(const Chunk& other) { return m_LocalChunkPosition == other.GetPosition(); }
+    bool operator!=(const Chunk& other) { return m_LocalChunkPosition != other.GetPosition(); }
+
     void Generate();
     void CreateMesh();
     void UploadToGPU();
