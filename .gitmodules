@@ -4,3 +4,6 @@
 [submodule "Tellus/ext/glm"]
 	path = Tellus/ext/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Tellus/ext/FastNoise2"]
+	path = Tellus/ext/FastNoise2
+	url = https://github.com/Auburn/FastNoise2.git

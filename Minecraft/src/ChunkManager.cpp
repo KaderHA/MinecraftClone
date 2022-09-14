@@ -1,8 +1,8 @@
 #include "ChunkManager.hpp"
 #include "Chunk.hpp"
 
-#define CHUNK_RADIUS 2
-#define CHUNKS_PER_FRAME 2
+#define CHUNK_RADIUS 4
+#define CHUNKS_PER_FRAME 4
 
 std::vector<ts::Ref<Chunk>> ChunkManager::Chunks;
 std::unordered_set<glm::ivec3, ChunkPositionHash> ChunkManager::m_LoadedChunks;
@@ -37,7 +37,7 @@ void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
                     // m_LoadList.push_back(Load(pos));
                     m_LoadedChunks.insert(pos);
                     loadNr++;
-                    if (loadNr > 8)
+                    if (loadNr > CHUNKS_PER_FRAME)
                         return;
                 }
             }
@@ -60,8 +60,7 @@ void ChunkManager::UnloadChunks(glm::vec3 cameraPosition) {
 }
 
 void ChunkManager::SynchronizeChunks() {
-    int nrOfLoad = 0;
-    while (m_LoadList.size() != 0 || nrOfLoad >= CHUNKS_PER_FRAME) {
+    while (m_LoadList.size() != 0) {
         auto status = m_LoadList.front().wait_for(std::chrono::microseconds(0));
         if (status == std::future_status::ready) {
             Chunks.push_back(m_LoadList.front().get());
