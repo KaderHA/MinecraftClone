@@ -82,10 +82,10 @@ ts::Ref<ts::TextureBuffer> CreateTexCoordBuffer(const ts::Ref<ts::Texture>& text
             uvArray[index + 2] = ((float)x * spacing) + spacing;
             uvArray[index + 3] = (((float)y * spacing) - spacing);
 
-            uvArray[index + 4] = ((float)x * spacing) + spacing;
+            uvArray[index + 4] = ((float)x * spacing);
             uvArray[index + 5] = (float)y * spacing;
 
-            uvArray[index + 6] = (float)x * spacing;
+            uvArray[index + 6] = (float)x * spacing + spacing;
             uvArray[index + 7] = (float)y * spacing;
         }
     }

@@ -33,11 +33,11 @@ class Chunk {
 
     const ts::Ref<ts::VertexArray>& GetVertexArray() const { return m_VertexArray; }
     glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
-    glm::vec3 GetPosition() const { return m_LocalChunkPosition; }
+    glm::ivec3 GetPosition() const { return m_LocalChunkPosition; }
 
     inline bool IsLoaded() const { return m_Loaded; }
 
-    void CreateFace(unsigned int* vertices, int& index, glm::ivec3 pos, unsigned int texture, BlockFace face);
+    void Chunk::CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
 
    public:
     static const int CHUNK_WIDTH = 32;
@@ -55,5 +55,5 @@ class Chunk {
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Scope<Block[]> m_Blocks;
     // Chunk(0,0), Chunk(1, 0) etc.
-    glm::vec3 m_LocalChunkPosition;
+    glm::ivec3 m_LocalChunkPosition;
 };
