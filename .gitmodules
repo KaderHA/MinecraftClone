@@ -7,3 +7,6 @@
 [submodule "Tellus/ext/FastNoise2"]
 	path = Tellus/ext/FastNoise2
 	url = https://github.com/Auburn/FastNoise2.git
+[submodule "Tellus/ext/ImGui"]
+	path = Tellus/ext/ImGui
+	url = https://github.com/ocornut/imgui.git

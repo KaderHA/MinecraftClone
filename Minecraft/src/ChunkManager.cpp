@@ -23,10 +23,11 @@ void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
     int startZ = (int)(cameraPosition.z / Chunk::CHUNK_DEPTH) - CHUNK_RADIUS;
     int endZ = (int)(cameraPosition.z / Chunk::CHUNK_DEPTH) + CHUNK_RADIUS;
 
-    int startY = (int)(cameraPosition.y / Chunk::CHUNK_HEIGHT) - CHUNK_RADIUS;
-    int endY = (int)(cameraPosition.y / Chunk::CHUNK_HEIGHT) + CHUNK_RADIUS;
+    // int startY = (int)(cameraPosition.y / Chunk::CHUNK_HEIGHT) - CHUNK_RADIUS;
+    // int endY = (int)(cameraPosition.y / Chunk::CHUNK_HEIGHT) + CHUNK_RADIUS;
 
-    // int endY = 256 / Chunk::CHUNK_HEIGHT;
+    int startY = 0;
+    int endY = 256 / Chunk::CHUNK_HEIGHT;
 
     int startX = (int)(cameraPosition.x / Chunk::CHUNK_WIDTH) - CHUNK_RADIUS;
     int endX = (int)(cameraPosition.x / Chunk::CHUNK_WIDTH) + CHUNK_RADIUS;

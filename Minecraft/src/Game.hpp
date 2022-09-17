@@ -11,7 +11,10 @@ class Game : public ts::Layer {
     ~Game();
 
     void OnUpdate(float dt) override;
-    void OnEvent(ts::Event& event) override;
+    virtual void OnAttach() override;
+    virtual void OnDetach() override;
+    virtual void OnEvent(ts::Event& event) override;
+    bool OnKeyPressed(ts::KeyPressedEvent& event);
 
    private:
     ts::Camera m_Camera;

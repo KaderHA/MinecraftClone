@@ -31,7 +31,6 @@ Window::Window(const char* title, int width, int height, unsigned int flags) {
 
     glfwSetWindowUserPointer(m_Native, &m_Data);
 
-
     // Callbacks
     glfwSetWindowSizeCallback(m_Native, [](GLFWwindow* window, int width, int height) {
         WindowData* data = (WindowData*)glfwGetWindowUserPointer(window);
@@ -117,15 +116,19 @@ Window::~Window() {}
 void Window::OnUpdate() {
     glfwPollEvents();
     glfwSwapBuffers(m_Native);
+    glViewport(0, 0, m_Data.Width, m_Data.Height);
 }
 
-float Window::GetTime() const
-{
+float Window::GetTime() const {
     return glfwGetTime();
 }
 
 void Window::SetCallback(const Callback& func) {
     m_Data.EventCallback = func;
+}
+
+void Window::SetInputMode(unsigned int mode) {
+    glfwSetInputMode(m_Native, GLFW_CURSOR, mode);
 }
 
 }  // namespace ts

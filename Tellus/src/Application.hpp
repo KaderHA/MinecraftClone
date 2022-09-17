@@ -5,6 +5,7 @@
 #include "Renderer/Buffer.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/Shader.hpp"
+#include "Layers/ImGuiLayer.hpp"
 
 namespace ts {
 
@@ -17,20 +18,21 @@ class Application {
     void PushLayer(Layer* layer);
     void PushOverlay(Layer* overlay);
 
-    static Application* Get() { return s_Instance; }
-    inline Window* GetWindow() { return m_Window; }
+    static Application& Get() { return *s_Instance; }
+    inline Window& GetWindow() { return *m_Window; }
 
    protected:
     Application();
 
    private:
     static Application* s_Instance;
-    Window* m_Window;
 
+    Scope<Window> m_Window;
     bool m_Running = true;
     float m_LastFrame;
 
     LayerStack m_LayerStack;
+    ImGuiLayer* m_ImGuiLayer;
 };
 
 Application* CreateApplication();

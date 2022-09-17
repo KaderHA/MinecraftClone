@@ -11,8 +11,10 @@ Application* Application::s_Instance = nullptr;
 
 Application::Application() {
     s_Instance = this;
-    m_Window = new Window("Game", 1280, 720, WindowFlag::MOUSE_DISABLED);
+    m_Window = Scope<Window>(new Window("Game", 1280, 720, WindowFlag::MOUSE_DISABLED));
     m_Window->SetCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+    m_ImGuiLayer = new ImGuiLayer();
+    PushOverlay(m_ImGuiLayer);
 }
 
 Application::~Application() {}
@@ -36,6 +38,10 @@ void Application::Run() {
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         for (Layer* layer : m_LayerStack)
             layer->OnUpdate(dt);
+        m_ImGuiLayer->Begin();
+        for (Layer* layer : m_LayerStack)
+            layer->OnImGuiRender();
+        m_ImGuiLayer->End();
     }
 }
 

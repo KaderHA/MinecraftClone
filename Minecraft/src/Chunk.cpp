@@ -26,8 +26,6 @@ void Chunk::Init(glm::ivec3 localChunkPosition) {
 
 Chunk::~Chunk() {}
 
-using NeighborCallback = std::function<bool>(BlockFace face);
-
 void Chunk::Generate() {
     float noise[(CHUNK_WIDTH) * (CHUNK_DEPTH)];
     // FastNoiseLite noise;
@@ -199,6 +197,7 @@ void Chunk::CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, 
     m_Vertices[m_VertexCount++] = (pos11.x) | ((pos11.y) << 6) | ((pos11.z) << 12) | (3 << 18) | (format << 20);
     m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (format << 20);
 }
+
 void Chunk::AddQuadAO(float* noise, unsigned int format, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11) {
     int32_t facingIdx = idx + facingOffset;
 

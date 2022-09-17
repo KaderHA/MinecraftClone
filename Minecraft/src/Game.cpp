@@ -3,15 +3,15 @@
 #include "ChunkManager.hpp"
 
 static std::mutex ChunksMutex;
-
-App::App() {
-    PushLayer(new Game);
-}
-App::~App() {}
-
 static ts::Ref<ts::TextureBuffer> CreateTexCoordBuffer(const ts::Ref<ts::Texture>& texture, unsigned int row_count, unsigned int column_count);
 
-Game::Game() : Layer("GameLayer") {
+App::App() { PushLayer(new Game); }
+App::~App() {}
+
+Game::Game() : Layer("GameLayer") {}
+Game::~Game() {}
+
+void Game::OnAttach() {
     m_Camera = ts::Camera(glm::vec3(16.f, ((float)150), 16.f), glm::vec3(0.0f, 1.0f, 0.0f));
     m_Camera.SetProjection(45.f, 1280.f / 720.f, 0.1f, 1000.f);
 
@@ -31,7 +31,7 @@ Game::Game() : Layer("GameLayer") {
     ts::Renderer::SetDepthMask(true);
 }
 
-Game::~Game() {}
+void Game::OnDetach() {}
 
 void Game::OnUpdate(float dt) {
     m_Camera.OnUpdate(dt);
@@ -63,7 +63,13 @@ void Game::OnUpdate(float dt) {
     ChunkManager::Update(m_Camera.GetPosition());
 }
 
-void Game::OnEvent(ts::Event& e) {
+void Game::OnEvent(ts::Event& event) {
+    ts::EventDispatcher dispatcher(event);
+    dispatcher.Dispatch<ts::KeyPressedEvent>(std::bind(&Game::OnKeyPressed, this, std::placeholders::_1));
+}
+
+bool Game::OnKeyPressed(ts::KeyPressedEvent& event) {
+    return true;
 }
 
 ts::Application* ts::CreateApplication() {

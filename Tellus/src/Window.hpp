@@ -35,6 +35,8 @@ class Window {
     void SetCallback(const Callback& func);
     void* GetNativeWindow() { return m_Native; }
 
+    void SetInputMode(unsigned int mode);
+
    private:
     GLFWwindow* m_Native;
     WindowData m_Data;
