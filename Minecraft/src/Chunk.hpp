@@ -28,6 +28,7 @@ class Chunk {
     bool operator!=(const Chunk& other) { return m_LocalChunkPosition != other.GetPosition(); }
 
     void Generate();
+    void GenMesh();
     void CreateMesh();
     void UploadToGPU();
 
@@ -37,7 +38,9 @@ class Chunk {
 
     inline bool IsLoaded() const { return m_Loaded; }
 
-    void Chunk::CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
+   private:
+    void CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
+    void AddQuadAO(float* noise, unsigned int format, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
 
    public:
     static const int CHUNK_WIDTH = 32;

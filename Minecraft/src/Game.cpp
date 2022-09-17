@@ -20,7 +20,7 @@ Game::Game() : Layer("GameLayer") {
     m_SkyBoxShader.reset(new ts::Shader("res/shaders/skybox.vs", "res/shaders/skybox.fs"));
 
     // Terrain
-    m_TerrainShader.reset(new ts::Shader("res/shaders/default.vs", "res/shaders/default.fs"));
+    m_TerrainShader.reset(new ts::Shader("res/shaders/AOShader.vs", "res/shaders/AOShader.fs"));
     m_Texture.reset(new ts::Texture2D("res/textures/terrain.png"));
     m_TexCoordBuffer = CreateTexCoordBuffer(m_Texture, 16, 16);
 

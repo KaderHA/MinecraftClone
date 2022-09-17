@@ -23,14 +23,17 @@ void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
     int startZ = (int)(cameraPosition.z / Chunk::CHUNK_DEPTH) - CHUNK_RADIUS;
     int endZ = (int)(cameraPosition.z / Chunk::CHUNK_DEPTH) + CHUNK_RADIUS;
 
-    int endY = 256 / Chunk::CHUNK_HEIGHT;
+    int startY = (int)(cameraPosition.y / Chunk::CHUNK_HEIGHT) - CHUNK_RADIUS;
+    int endY = (int)(cameraPosition.y / Chunk::CHUNK_HEIGHT) + CHUNK_RADIUS;
+
+    // int endY = 256 / Chunk::CHUNK_HEIGHT;
 
     int startX = (int)(cameraPosition.x / Chunk::CHUNK_WIDTH) - CHUNK_RADIUS;
     int endX = (int)(cameraPosition.x / Chunk::CHUNK_WIDTH) + CHUNK_RADIUS;
 
     for (int z = startZ; z <= endZ; z++) {
-        for (int x = startX; x <= endX; x++) {
-            for (int y = 0; y < endY; y++) {
+        for (int y = startY; y < endY; y++) {
+            for (int x = startX; x <= endX; x++) {
                 glm::ivec3 pos(x, y, z);
                 if (m_LoadedChunks.find(pos) == m_LoadedChunks.end()) {
                     m_LoadList.push(std::async(std::launch::async, Load, pos));
@@ -83,8 +86,9 @@ void ChunkManager::SynchronizeChunks() {
 ts::Ref<Chunk> ChunkManager::Load(glm::ivec3 pos) {
     ts::Ref<Chunk> chunk(new Chunk());
     chunk->Init(pos);
-    chunk->Generate();
-    chunk->CreateMesh();
+    chunk->GenMesh();
+    // chunk->Generate();
+    // chunk->CreateMesh();
     return chunk;
 }
 

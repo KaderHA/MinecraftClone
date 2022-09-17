@@ -1,6 +1,7 @@
 #include "Chunk.hpp"
 
 #define WATER_LEVEL 120
+#define ISO_SURFACE 0.2
 
 /// Cube Indices ///
 /**
@@ -73,6 +74,76 @@ void Chunk::Generate() {
         }
     }
 }
+
+void Chunk::GenMesh() {
+    m_Vertices = new unsigned int[CHUNK_SIZE * 36];
+    constexpr int32_t SIZE_GEN = 32 + 2;
+    float noise[SIZE_GEN * SIZE_GEN * SIZE_GEN];
+    // FastNoiseLite noise;
+    // noise.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_Perlin);
+    // noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
+    // noise.SetFractalOctaves(16);
+    // noise.SetFractalLacunarity(2.f);
+    // noise.SetFractalGain(0.5f);
+
+    glm::ivec3 globPos(m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH);
+
+    auto fnPerlin = FastNoise::New<FastNoise::Perlin>();
+    auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
+
+    fnFractal->SetSource(fnPerlin);
+    fnFractal->SetOctaveCount(16);
+    fnFractal->SetGain(0.5f);
+    fnFractal->SetLacunarity(2.f);
+    fnFractal->GenUniformGrid3D(noise, globPos.x - 1, globPos.y - 1, globPos.z - 1, SIZE_GEN, SIZE_GEN, SIZE_GEN, 0.005f, 1337);
+
+    constexpr int32_t STEP_X = 1;
+    constexpr int32_t STEP_Y = SIZE_GEN;
+    constexpr int32_t STEP_Z = SIZE_GEN * SIZE_GEN;
+
+    int32_t noiseIdx = STEP_X + STEP_Y + STEP_Z;
+
+    for (int z = 0; z < CHUNK_DEPTH; z++) {
+        for (int y = 0; y < CHUNK_HEIGHT; y++) {
+            for (int x = 0; x < CHUNK_WIDTH; x++) {
+                if (noise[noiseIdx] > ISO_SURFACE) {
+                    noiseIdx++;
+                    continue;
+                }
+                TextureFormat format = this->GetUVs(BlockType::Stone);
+
+                if (noise[noiseIdx + STEP_X] > ISO_SURFACE)  // Right
+                    AddQuadAO(noise, format.side, noiseIdx, STEP_X, -STEP_Z, STEP_Y,
+                              glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
+
+                if (noise[noiseIdx - STEP_X] > ISO_SURFACE)  // Left
+                    AddQuadAO(noise, format.side, noiseIdx, -STEP_X, STEP_Z, STEP_Y,
+                              glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
+
+                if (noise[noiseIdx + STEP_Y] > ISO_SURFACE)  // Up
+                    AddQuadAO(noise, format.top, noiseIdx, STEP_Y, STEP_X, -STEP_Z,
+                              glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
+
+                if (noise[noiseIdx - STEP_Y] > ISO_SURFACE)  // Down
+                    AddQuadAO(noise, format.bottom, noiseIdx, -STEP_Y, STEP_X, STEP_Z,
+                              glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
+
+                if (noise[noiseIdx + STEP_Z] > ISO_SURFACE)  // Forward
+                    AddQuadAO(noise, format.side, noiseIdx, STEP_Z, STEP_X, STEP_Y,
+                              glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
+
+                if (noise[noiseIdx - STEP_Z] > ISO_SURFACE)  // Back
+                    AddQuadAO(noise, format.side, noiseIdx, -STEP_Z, -STEP_X, STEP_Y,
+                              glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
+
+                noiseIdx++;
+            }
+            noiseIdx += STEP_X * 2;
+        }
+        noiseIdx += STEP_Y * 2;
+    }
+}
+
 void Chunk::CreateMesh() {
     m_Vertices = new unsigned int[CHUNK_SIZE * 36];
     for (int z = 0; z < CHUNK_DEPTH; z++) {
@@ -127,6 +198,32 @@ void Chunk::CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, 
     m_Vertices[m_VertexCount++] = (pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (format << 20);
     m_Vertices[m_VertexCount++] = (pos11.x) | ((pos11.y) << 6) | ((pos11.z) << 12) | (3 << 18) | (format << 20);
     m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (format << 20);
+}
+void Chunk::AddQuadAO(float* noise, unsigned int format, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11) {
+    int32_t facingIdx = idx + facingOffset;
+
+    unsigned int sideA0 = noise[facingIdx - offsetA] <= ISO_SURFACE;
+    unsigned int sideA1 = noise[facingIdx + offsetA] <= ISO_SURFACE;
+    unsigned int sideB0 = noise[facingIdx - offsetB] <= ISO_SURFACE;
+    unsigned int sideB1 = noise[facingIdx + offsetB] <= ISO_SURFACE;
+
+    unsigned int corner00 = (sideA0 & sideB0) || noise[facingIdx - offsetA - offsetB] <= ISO_SURFACE;
+    unsigned int corner01 = (sideA0 & sideB1) || noise[facingIdx - offsetA + offsetB] <= ISO_SURFACE;
+    unsigned int corner10 = (sideA1 & sideB0) || noise[facingIdx + offsetA - offsetB] <= ISO_SURFACE;
+    unsigned int corner11 = (sideA1 & sideB1) || noise[facingIdx + offsetA + offsetB] <= ISO_SURFACE;
+
+    unsigned int ao00 = sideA0 + sideB0 + corner00;
+    unsigned int ao10 = sideA1 + sideB0 + corner10;
+    unsigned int ao01 = sideA0 + sideB1 + corner01;
+    unsigned int ao11 = sideA1 + sideB1 + corner11;
+
+    m_Vertices[m_VertexCount++] = (pos00.x) | ((pos00.y) << 6) | ((pos00.z) << 12) | (0 << 18) | (ao00 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (ao10 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (ao01 << 20) | (format << 22);
+
+    m_Vertices[m_VertexCount++] = (pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (ao10 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos11.x) | ((pos11.y) << 6) | ((pos11.z) << 12) | (3 << 18) | (ao11 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (ao01 << 20) | (format << 22);
 }
 
 void Chunk::UploadToGPU() {
