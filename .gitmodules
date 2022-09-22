@@ -1,12 +1,3 @@
-[submodule "Tellus/ext/glfw"]
-	path = Tellus/ext/glfw
-	url = https://github.com/glfw/glfw.git
-[submodule "Tellus/ext/glm"]
-	path = Tellus/ext/glm
-	url = https://github.com/g-truc/glm.git
-[submodule "Tellus/ext/FastNoise2"]
-	path = Tellus/ext/FastNoise2
-	url = https://github.com/Auburn/FastNoise2.git
-[submodule "Tellus/ext/ImGui"]
-	path = Tellus/ext/ImGui
-	url = https://github.com/ocornut/imgui.git
+[submodule "Minecraft/ext/Tellus"]
+	path = Minecraft/ext/Tellus
+	url = https://github.com/Cylpen/Tellus.git
