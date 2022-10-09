@@ -35,6 +35,8 @@ class Chunk {
     const ts::Ref<ts::VertexArray>& GetVertexArray() const { return m_VertexArray; }
     glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
     glm::ivec3 GetPosition() const { return m_LocalChunkPosition; }
+    Block GetBlock(glm::ivec3 pos) const { return m_Blocks[(pos.z * CHUNK_WIDTH * CHUNK_HEIGHT) + (pos.y * CHUNK_WIDTH) + pos.x]; }
+    bool NeighborActive(glm::ivec3 chunkPos, glm::ivec3 blockPos);
 
     inline bool IsLoaded() const { return m_Loaded; }
 
@@ -57,6 +59,7 @@ class Chunk {
     int m_VertexCount;
     ts::Ref<ts::VertexArray> m_VertexArray;
     ts::Scope<Block[]> m_Blocks;
+    FastNoise::SmartNode<FastNoise::FractalFBm> m_Fractal;
     // Chunk(0,0), Chunk(1, 0) etc.
     glm::ivec3 m_LocalChunkPosition;
 };
