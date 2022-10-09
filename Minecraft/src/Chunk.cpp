@@ -1,7 +1,7 @@
 #include "Chunk.hpp"
 
 #define WATER_LEVEL 120
-#define ISO_SURFACE 0.2
+#define ISO_SURFACE 0.0
 
 /// Cube Indices ///
 /**
@@ -28,13 +28,6 @@ Chunk::~Chunk() {}
 
 void Chunk::Generate() {
     float noise[(CHUNK_WIDTH) * (CHUNK_DEPTH)];
-    // FastNoiseLite noise;
-    // noise.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_Perlin);
-    // noise.SetFractalType(FastNoiseLite::FractalType::FractalType_FBm);
-    // noise.SetFractalOctaves(16);
-    // noise.SetFractalLacunarity(2.f);
-    // noise.SetFractalGain(0.5f);
-
     glm::ivec3 globPos(m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH);
 
     auto fnPerlin = FastNoise::New<FastNoise::Perlin>();
@@ -111,28 +104,22 @@ void Chunk::GenMesh() {
                 TextureFormat format = this->GetUVs(BlockType::Stone);
 
                 if (noise[noiseIdx + STEP_X] > ISO_SURFACE)  // Right
-                    AddQuadAO(noise, format.side, noiseIdx, STEP_X, -STEP_Z, STEP_Y,
-                              glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
+                    AddQuadAO(noise, format.side, noiseIdx, STEP_X, -STEP_Z, STEP_Y, glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
 
                 if (noise[noiseIdx - STEP_X] > ISO_SURFACE)  // Left
-                    AddQuadAO(noise, format.side, noiseIdx, -STEP_X, STEP_Z, STEP_Y,
-                              glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
+                    AddQuadAO(noise, format.side, noiseIdx, -STEP_X, STEP_Z, STEP_Y, glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
 
                 if (noise[noiseIdx + STEP_Y] > ISO_SURFACE)  // Up
-                    AddQuadAO(noise, format.top, noiseIdx, STEP_Y, STEP_X, -STEP_Z,
-                              glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
+                    AddQuadAO(noise, format.top, noiseIdx, STEP_Y, STEP_X, -STEP_Z, glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
 
                 if (noise[noiseIdx - STEP_Y] > ISO_SURFACE)  // Down
-                    AddQuadAO(noise, format.bottom, noiseIdx, -STEP_Y, STEP_X, STEP_Z,
-                              glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
+                    AddQuadAO(noise, format.bottom, noiseIdx, -STEP_Y, STEP_X, STEP_Z, glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
 
                 if (noise[noiseIdx + STEP_Z] > ISO_SURFACE)  // Forward
-                    AddQuadAO(noise, format.side, noiseIdx, STEP_Z, STEP_X, STEP_Y,
-                              glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
+                    AddQuadAO(noise, format.side, noiseIdx, STEP_Z, STEP_X, STEP_Y, glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
 
                 if (noise[noiseIdx - STEP_Z] > ISO_SURFACE)  // Back
-                    AddQuadAO(noise, format.side, noiseIdx, -STEP_Z, -STEP_X, STEP_Y,
-                              glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
+                    AddQuadAO(noise, format.side, noiseIdx, -STEP_Z, -STEP_X, STEP_Y, glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
 
                 noiseIdx++;
             }
@@ -165,23 +152,17 @@ void Chunk::CreateMesh() {
                 if (z < CHUNK_DEPTH - 1) lZPositive = m_Blocks[index + (CHUNK_HEIGHT * CHUNK_WIDTH)].IsActive();
 
                 if (!lZPositive)
-                    CreateFace(format.side,
-                               glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
+                    CreateFace(format.side, glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
                 if (!lZNegative)
-                    CreateFace(format.side,
-                               glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
+                    CreateFace(format.side, glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
                 if (!lXPositive)
-                    CreateFace(format.side,
-                               glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
+                    CreateFace(format.side, glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
                 if (!lXNegative)
-                    CreateFace(format.side,
-                               glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
+                    CreateFace(format.side, glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
                 if (!lYPositive)
-                    CreateFace(format.top,
-                               glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
+                    CreateFace(format.top, glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
                 if (!lYNegative)
-                    CreateFace(format.bottom,
-                               glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
+                    CreateFace(format.bottom, glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
             }
         }
     }
