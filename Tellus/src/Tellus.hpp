@@ -5,6 +5,8 @@
 #include "Input/KeyCodes.hpp"
 #include "Input/MouseCodes.hpp"
 #include "Input/Input.hpp"
+
+#include <imgui.h>
 #include <FastNoise/FastNoise.h>
 
 #include "Renderer/Renderer.hpp"

@@ -4,10 +4,10 @@
 #define CHUNK_RADIUS 4
 #define CHUNKS_PER_FRAME 4
 
-std::vector<ts::Ref<Chunk>> ChunkManager::Chunks;
+std::vector<ts::Scope<Chunk>> ChunkManager::Chunks;
 std::unordered_set<glm::ivec3, ChunkPositionHash> ChunkManager::m_LoadedChunks;
 // Multithreaded
-std::queue<std::future<ts::Ref<Chunk>>> ChunkManager::m_LoadList;
+std::queue<std::future<ts::Scope<Chunk>>> ChunkManager::m_LoadList;
 // SingleThread
 // std::vector<ts::Ref<Chunk>> ChunkManager::m_LoadList;
 
@@ -64,7 +64,7 @@ void ChunkManager::SynchronizeChunks() {
     while (m_LoadList.size() != 0) {
         auto status = m_LoadList.front().wait_for(std::chrono::microseconds(0));
         if (status == std::future_status::ready) {
-            Chunks.push_back(m_LoadList.front().get());
+            Chunks.push_back(std::move(m_LoadList.front().get()));
             Chunks.back()->UploadToGPU();
             m_LoadList.pop();
         } else {
@@ -81,8 +81,8 @@ void ChunkManager::SynchronizeChunks() {
 //     }
 // }
 
-ts::Ref<Chunk> ChunkManager::Load(glm::ivec3 pos) {
-    ts::Ref<Chunk> chunk(new Chunk());
+ts::Scope<Chunk> ChunkManager::Load(glm::ivec3 pos) {
+    ts::Scope<Chunk> chunk(new Chunk());
     chunk->Init(pos);
     // chunk->GenMesh();
     chunk->Generate();

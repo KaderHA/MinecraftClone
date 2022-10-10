@@ -105,4 +105,29 @@ class VertexArray {
     Ref<IndexBuffer> m_IndexBuffer;
 };
 
+class FrameBuffer {
+   public:
+    FrameBuffer(int width, int height);
+
+    void Bind() const;
+    void Unbind() const;
+    bool Check() const;
+
+    unsigned int GetWidth() const { return m_Width; }
+    unsigned int GetHeight() const { return m_Height; }
+
+    void AddColorRenderBuffer();
+    void AddDepthRenderBuffer();
+    void AddColorTexture();
+    void AddDepthTexture();
+
+    unsigned int GetColorTexture(unsigned int index) { return m_ColorTextures[index]; }
+    unsigned int GetDepthTexture(unsigned int index) { return m_DepthTextures[index]; }
+
+   private:
+    unsigned int m_RenderID;
+    int m_Width, m_Height;
+    std::vector<unsigned int> m_ColorTextures, m_DepthTextures;
+};
+
 };  // namespace ts

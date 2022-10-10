@@ -28,6 +28,19 @@ void Game::OnAttach() {
     m_TerrainShader->set1i("uTexture", 0);
     m_TerrainShader->set1i("uTexUV", 1);
 
+    // Water
+    m_WaterShader.reset(new ts::Shader("res/shaders/water.vs", "res/shaders/water.fs"));
+    m_WaterShader->Bind();
+    m_WaterShader->set1i("uTexture", 0);
+    m_WaterShader->set1i("uTexUV", 1);
+
+    m_Reflection.reset(new ts::FrameBuffer(320, 180));
+    m_Reflection->AddColorTexture();
+    m_Reflection->AddDepthRenderBuffer();
+    if (!m_Reflection->Check()) {
+        std::cout << "FrameBuffer is not complete!" << '\n';
+    }
+
     ts::Renderer::SetDepthMask(true);
 }
 
@@ -37,14 +50,38 @@ void Game::OnUpdate(float dt) {
     m_Camera.OnUpdate(dt);
     ts::Renderer::BeginScene(m_Camera);
 
+    m_Reflection->Bind();
+    ts::Renderer::Clear(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
     m_TerrainShader->Bind();
     m_Texture->Bind();
     m_TexCoordBuffer->Bind(1);
 
-    for (auto itr : ChunkManager::Chunks) {
-        if (itr->GetVertexArray()->GetVertexCount() == 0) continue;
+    for (const auto& itr : ChunkManager::Chunks) {
+        if (itr->GetTerrainVertexArray()->GetVertexCount() == 0) continue;
         m_TerrainShader->setMat4fv("uModel", itr->GetModelMatrix());
-        ts::Renderer::Submit(itr->GetVertexArray(), m_TerrainShader);
+        ts::Renderer::Submit(itr->GetTerrainVertexArray(), m_TerrainShader);
+    }
+    m_Reflection->Unbind();
+    ts::Renderer::Clear(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+
+    m_TerrainShader->Bind();
+    m_Texture->Bind();
+    m_TexCoordBuffer->Bind(1);
+
+    for (const auto& itr : ChunkManager::Chunks) {
+        if (itr->GetTerrainVertexArray()->GetVertexCount() == 0) continue;
+        m_TerrainShader->setMat4fv("uModel", itr->GetModelMatrix());
+        ts::Renderer::Submit(itr->GetTerrainVertexArray(), m_TerrainShader);
+    }
+
+    m_WaterShader->Bind();
+    m_Texture->Bind();
+    m_TexCoordBuffer->Bind(1);
+
+    for (const auto& itr : ChunkManager::Chunks) {
+        if (itr->GetWaterVertexArray()->GetVertexCount() == 0) continue;
+        m_WaterShader->setMat4fv("uModel", itr->GetModelMatrix());
+        ts::Renderer::Submit(itr->GetWaterVertexArray(), m_WaterShader);
     }
 
     ts::Renderer::SetDepthFunc(ts::DepthFunc::LEQUAL);
@@ -64,12 +101,18 @@ void Game::OnUpdate(float dt) {
 }
 
 void Game::OnEvent(ts::Event& event) {
-    ts::EventDispatcher dispatcher(event);
-    dispatcher.Dispatch<ts::KeyPressedEvent>(std::bind(&Game::OnKeyPressed, this, std::placeholders::_1));
+    // ts::EventDispatcher dispatcher(event);
+    // dispatcher.Dispatch<ts::KeyPressedEvent>(std::bind(&Game::OnKeyPressed, this, std::placeholders::_1));
 }
 
 bool Game::OnKeyPressed(ts::KeyPressedEvent& event) {
     return true;
+}
+
+void Game::OnImGuiRender() {
+    ImGui::Text("Pointer = %p", m_Reflection->GetColorTexture(0));
+    ImGui::Text("size = %d x %d", m_Reflection->GetWidth(), m_Reflection->GetHeight());
+    ImGui::Image((void*)(intptr_t)m_Reflection->GetColorTexture(0), ImVec2(m_Reflection->GetWidth(), m_Reflection->GetWidth()));
 }
 
 ts::Application* ts::CreateApplication() {

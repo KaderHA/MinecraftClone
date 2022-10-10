@@ -20,10 +20,10 @@ class ChunkManager {
     static void SynchronizeChunks();
 
    public:
-    static std::vector<ts::Ref<Chunk>> Chunks;
+    static std::vector<ts::Scope<Chunk>> Chunks;
 
    private:
-    static ts::Ref<Chunk> Load(glm::ivec3 pos);
+    static ts::Scope<Chunk> Load(glm::ivec3 pos);
     // static void Rebuild();
 
    private:
@@ -31,7 +31,7 @@ class ChunkManager {
     static std::unordered_set<glm::ivec3, ChunkPositionHash> m_LoadedChunks;
 
     // Multithreaded
-    static std::queue<std::future<ts::Ref<Chunk>>> m_LoadList;
+    static std::queue<std::future<ts::Scope<Chunk>>> m_LoadList;
     // SingleThread
     // static std::vector<ts::Ref<Chunk>> m_LoadList;
 };

@@ -59,6 +59,7 @@ class Texture2D : public Texture {
 
     virtual unsigned int GetWidth() const override { return m_Width; }
     virtual unsigned int GetHeight() const override { return m_Height; }
+    virtual unsigned int GetID() const { return m_ID; }
 
     virtual void Bind(unsigned int slot = 0) const override;
     virtual void Unbind(unsigned int slot) const override;

@@ -13,6 +13,11 @@ void Renderer::BeginScene(const Camera& camera) {
     VP = camera.GetViewProjection();
 }
 
+void Renderer::Clear(const glm::vec4& color) {
+    RendererAPI::SetClearColor(color);
+    RendererAPI::Clear();
+}
+
 void Renderer::EndScene() {}
 
 void Renderer::Submit(const Ref<VertexArray>& va) {

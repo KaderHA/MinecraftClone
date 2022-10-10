@@ -15,13 +15,15 @@ class Game : public ts::Layer {
     virtual void OnDetach() override;
     virtual void OnEvent(ts::Event& event) override;
     bool OnKeyPressed(ts::KeyPressedEvent& event);
+    virtual void OnImGuiRender() override;
 
    private:
     ts::Camera m_Camera;
-    ts::Ref<ts::Shader> m_TerrainShader;
+    ts::Ref<ts::Shader> m_TerrainShader, m_WaterShader;
 
     ts::Ref<ts::Texture2D> m_Texture;
     ts::Ref<ts::TextureBuffer> m_TexCoordBuffer;
+    ts::Ref<ts::FrameBuffer> m_Reflection, m_Refraction;
 
     ts::Ref<Skybox> m_Skybox;
     ts::Ref<ts::Shader> m_SkyBoxShader;

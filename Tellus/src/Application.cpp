@@ -30,11 +30,9 @@ void Application::Run() {
         // TODO -> Make client able to end the game loop
         if (Input::IsKeyPressed(TS_KEY_ESCAPE)) m_Running = false;
 
-        /// TODO -> Find a more appropriate place to clear screen
+        /// TODO -> Find a more appropriate place
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         for (Layer* layer : m_LayerStack)
             layer->OnUpdate(dt);

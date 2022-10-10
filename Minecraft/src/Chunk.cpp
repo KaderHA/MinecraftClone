@@ -58,7 +58,7 @@ void Chunk::Generate() {
                 else if (yHeight == 0)
                     m_Blocks[index].SetBlockType(BlockType::Bedrock);
 
-                if (height <= WATER_LEVEL && yHeight == WATER_LEVEL) {
+                if (height < WATER_LEVEL && yHeight == WATER_LEVEL && yHeight > height) {
                     m_Blocks[index].SetBlockType(BlockType::Water);
                 }
             }
@@ -72,6 +72,11 @@ void Chunk::CreateMesh() {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
                 int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
+                if (m_Blocks[index].GetBlockType() == BlockType::Water) {
+                    TextureFormat format = this->GetUVs(m_Blocks[index].GetBlockType());
+                    CreateWaterFace(format.top, glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
+                    continue;
+                }
                 if (m_Blocks[index].IsActive() == false) continue;
                 TextureFormat format = this->GetUVs(m_Blocks[index].GetBlockType());
 
@@ -137,6 +142,16 @@ void Chunk::CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, 
     m_Vertices[m_VertexCount++] = (pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (0 << 20) | (format << 22);
     m_Vertices[m_VertexCount++] = (pos11.x) | ((pos11.y) << 6) | ((pos11.z) << 12) | (3 << 18) | (0 << 20) | (format << 22);
     m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (0 << 20) | (format << 22);
+}
+
+void Chunk::CreateWaterFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11) {
+    m_WaterVertices.push_back((pos00.x) | ((pos00.y) << 6) | ((pos00.z) << 12) | (0 << 18) | (0 << 20) | (format << 22));
+    m_WaterVertices.push_back((pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (0 << 20) | (format << 22));
+    m_WaterVertices.push_back((pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (0 << 20) | (format << 22));
+
+    m_WaterVertices.push_back((pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (0 << 20) | (format << 22));
+    m_WaterVertices.push_back((pos11.x) | ((pos11.y) << 6) | ((pos11.z) << 12) | (3 << 18) | (0 << 20) | (format << 22));
+    m_WaterVertices.push_back((pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (0 << 20) | (format << 22));
 }
 
 void Chunk::GenMesh() {
@@ -232,8 +247,11 @@ void Chunk::AddQuadAO(float* noise, unsigned int format, int32_t idx, int32_t fa
 void Chunk::UploadToGPU() {
     ts::BufferLayout layout = {{0x1405, 1}};
     ts::Ref<ts::VertexBuffer> vb(new ts::VertexBuffer(m_Vertices, m_VertexCount * sizeof(unsigned int), layout));
-    m_VertexArray.reset(new ts::VertexArray(vb));
+    m_TerrainVA.reset(new ts::VertexArray(vb));
+    ts::Ref<ts::VertexBuffer> wvb(new ts::VertexBuffer(m_WaterVertices.data(), m_WaterVertices.size() * sizeof(unsigned int), layout));
+    m_WaterVA.reset(new ts::VertexArray(wvb));
     delete[] m_Vertices;
+    m_WaterVertices.clear();
 }
 
 bool Chunk::NeighborActive(glm::ivec3 chunkPos, glm::ivec3 blockPos) {

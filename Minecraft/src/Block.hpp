@@ -15,7 +15,7 @@ class Block {
     ~Block();
 
     // Getter
-    bool IsActive() const { return m_ID != 0; }
+    bool IsActive() const { return m_ID != 0 && m_ID != static_cast<unsigned int>(BlockType::Water); }
     inline BlockType GetBlockType() const { return static_cast<BlockType>(m_ID); }
 
     // Setters
