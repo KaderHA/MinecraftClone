@@ -1,6 +1,7 @@
 #pragma once
 #include <Tellus.hpp>
 #include "Block.hpp"
+#define WATER_LEVEL 120
 
 struct TextureFormat {
     unsigned int top;

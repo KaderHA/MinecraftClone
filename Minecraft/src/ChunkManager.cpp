@@ -1,5 +1,4 @@
 #include "ChunkManager.hpp"
-#include "Chunk.hpp"
 
 #define CHUNK_RADIUS 4
 #define CHUNKS_PER_FRAME 4

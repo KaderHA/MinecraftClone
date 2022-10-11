@@ -1,5 +1,6 @@
 #pragma once
 #include <Tellus.hpp>
+#include "Chunk.hpp"
 
 struct ChunkPositionHash {
     // http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
@@ -7,8 +8,6 @@ struct ChunkPositionHash {
         return (position.x * 88339) ^ (position.z * 91967) ^ (position.z * 126323);
     }
 };
-
-class Chunk;
 
 class ChunkManager {
    public:

@@ -129,6 +129,14 @@ void FrameBuffer::Unbind() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(PrevViewPort[0], PrevViewPort[1], PrevViewPort[2], PrevViewPort[3]);
 }
+
+void FrameBuffer::BindColorTexture(unsigned int slot) const {
+    glBindTextureUnit(slot, m_ColorTextures[0]);
+}
+void FrameBuffer::UnbindColorTexture() const {
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 bool FrameBuffer::Check() const {
     Bind();
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {

@@ -20,7 +20,7 @@ void Game::OnAttach() {
     m_SkyBoxShader.reset(new ts::Shader("res/shaders/skybox.vs", "res/shaders/skybox.fs"));
 
     // Terrain
-    m_TerrainShader.reset(new ts::Shader("res/shaders/AOShader.vs", "res/shaders/AOShader.fs"));
+    m_TerrainShader.reset(new ts::Shader("res/shaders/terrain.vs", "res/shaders/terrain.fs"));
     m_Texture.reset(new ts::Texture2D("res/textures/terrain.png"));
     m_TexCoordBuffer = CreateTexCoordBuffer(m_Texture, 16, 16);
 
@@ -33,11 +33,19 @@ void Game::OnAttach() {
     m_WaterShader->Bind();
     m_WaterShader->set1i("uTexture", 0);
     m_WaterShader->set1i("uTexUV", 1);
+    m_WaterShader->set1i("uReflectionTexture", 2);
+    m_WaterShader->set1i("uRefractionTexture", 3);
 
     m_Reflection.reset(new ts::FrameBuffer(320, 180));
     m_Reflection->AddColorTexture();
     m_Reflection->AddDepthRenderBuffer();
     if (!m_Reflection->Check()) {
+        std::cout << "FrameBuffer is not complete!" << '\n';
+    }
+    m_Refraction.reset(new ts::FrameBuffer(1280, 720));
+    m_Refraction->AddColorTexture();
+    m_Refraction->AddDepthRenderBuffer();
+    if (!m_Refraction->Check()) {
         std::cout << "FrameBuffer is not complete!" << '\n';
     }
 
@@ -48,40 +56,56 @@ void Game::OnDetach() {}
 
 void Game::OnUpdate(float dt) {
     m_Camera.OnUpdate(dt);
+    float dist = 2 * (m_Camera.GetPosition().y - (WATER_LEVEL + 1));
+    m_Camera.SetPosition(m_Camera.GetPosition().x, m_Camera.GetPosition().y - dist, m_Camera.GetPosition().z);
+    m_Camera.InversePitch();
     ts::Renderer::BeginScene(m_Camera);
 
     m_Reflection->Bind();
-    ts::Renderer::Clear(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-    m_TerrainShader->Bind();
-    m_Texture->Bind();
-    m_TexCoordBuffer->Bind(1);
-
-    for (const auto& itr : ChunkManager::Chunks) {
-        if (itr->GetTerrainVertexArray()->GetVertexCount() == 0) continue;
-        m_TerrainShader->setMat4fv("uModel", itr->GetModelMatrix());
-        ts::Renderer::Submit(itr->GetTerrainVertexArray(), m_TerrainShader);
-    }
+    RenderScene(glm::vec4(0, 1, 0, -WATER_LEVEL));
     m_Reflection->Unbind();
-    ts::Renderer::Clear(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
 
-    m_TerrainShader->Bind();
-    m_Texture->Bind();
-    m_TexCoordBuffer->Bind(1);
+    m_Camera.SetPosition(m_Camera.GetPosition().x, m_Camera.GetPosition().y + dist, m_Camera.GetPosition().z);
+    m_Camera.InversePitch();
+    ts::Renderer::BeginScene(m_Camera);
 
-    for (const auto& itr : ChunkManager::Chunks) {
-        if (itr->GetTerrainVertexArray()->GetVertexCount() == 0) continue;
-        m_TerrainShader->setMat4fv("uModel", itr->GetModelMatrix());
-        ts::Renderer::Submit(itr->GetTerrainVertexArray(), m_TerrainShader);
-    }
+    m_Refraction->Bind();
+    RenderScene(glm::vec4(0, -1, 0, WATER_LEVEL + 1));
+    m_Refraction->Unbind();
+    RenderScene();
 
     m_WaterShader->Bind();
-    m_Texture->Bind();
+    m_Texture->Bind(0);
     m_TexCoordBuffer->Bind(1);
+    m_Reflection->BindColorTexture(2);
+    m_Refraction->BindColorTexture(3);
 
     for (const auto& itr : ChunkManager::Chunks) {
         if (itr->GetWaterVertexArray()->GetVertexCount() == 0) continue;
         m_WaterShader->setMat4fv("uModel", itr->GetModelMatrix());
         ts::Renderer::Submit(itr->GetWaterVertexArray(), m_WaterShader);
+    }
+
+    if (ts::Input::IsKeyPressed(TS_KEY_LEFT_SHIFT))
+        m_Camera.SetSpeed(100.f);
+    else
+        m_Camera.SetSpeed(10.0f);
+
+    ChunkManager::Update(m_Camera.GetPosition());
+}
+
+void Game::RenderScene(const glm::vec4& clipPlane) {
+    ts::Renderer::Clear(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+
+    m_TerrainShader->Bind();
+    m_Texture->Bind(0);
+    m_TexCoordBuffer->Bind(1);
+
+    for (const auto& itr : ChunkManager::Chunks) {
+        if (itr->GetTerrainVertexArray()->GetVertexCount() == 0) continue;
+        m_TerrainShader->setMat4fv("uModel", itr->GetModelMatrix());
+        m_TerrainShader->setVec4fv("uPlane", clipPlane);
+        ts::Renderer::Submit(itr->GetTerrainVertexArray(), m_TerrainShader);
     }
 
     ts::Renderer::SetDepthFunc(ts::DepthFunc::LEQUAL);
@@ -91,13 +115,6 @@ void Game::OnUpdate(float dt) {
     m_Skybox->BindTexture(0);
     ts::Renderer::Submit(m_Skybox->GetVAO());
     ts::Renderer::SetDepthFunc(ts::DepthFunc::LESS);
-
-    if (ts::Input::IsKeyPressed(TS_KEY_LEFT_SHIFT))
-        m_Camera.SetSpeed(100.f);
-    else
-        m_Camera.SetSpeed(10.0f);
-
-    ChunkManager::Update(m_Camera.GetPosition());
 }
 
 void Game::OnEvent(ts::Event& event) {
@@ -110,9 +127,14 @@ bool Game::OnKeyPressed(ts::KeyPressedEvent& event) {
 }
 
 void Game::OnImGuiRender() {
-    ImGui::Text("Pointer = %p", m_Reflection->GetColorTexture(0));
-    ImGui::Text("size = %d x %d", m_Reflection->GetWidth(), m_Reflection->GetHeight());
-    ImGui::Image((void*)(intptr_t)m_Reflection->GetColorTexture(0), ImVec2(m_Reflection->GetWidth(), m_Reflection->GetWidth()));
+    // ImGui::Text("m_Reflection:");
+    // ImGui::Text("Pointer = %p", m_Reflection->GetColorTexture(0));
+    // ImGui::Text("size = %d x %d", m_Reflection->GetWidth(), m_Reflection->GetHeight());
+    // ImGui::Image((void*)(intptr_t)m_Reflection->GetColorTexture(0), ImVec2(m_Reflection->GetWidth(), m_Reflection->GetWidth()));
+    // ImGui::Text("Refraction:");
+    // ImGui::Text("Pointer = %p", m_Refraction->GetColorTexture(0));
+    // ImGui::Text("size = %d x %d", m_Refraction->GetWidth(), m_Refraction->GetHeight());
+    // ImGui::Image((void*)(intptr_t)m_Refraction->GetColorTexture(0), ImVec2(m_Refraction->GetWidth(), m_Refraction->GetWidth()));
 }
 
 ts::Application* ts::CreateApplication() {

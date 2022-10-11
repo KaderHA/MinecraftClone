@@ -4,6 +4,9 @@
 #include "Input/Input.hpp"
 #include "Input/KeyCodes.hpp"
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+static bool MouseEnabled = false;
 
 namespace ts {
 
@@ -33,6 +36,7 @@ void Application::Run() {
         /// TODO -> Find a more appropriate place
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CLIP_DISTANCE0);
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         for (Layer* layer : m_LayerStack)
             layer->OnUpdate(dt);

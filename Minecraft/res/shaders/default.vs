@@ -11,6 +11,9 @@ vec2 GetTexCoord();
 
 void main() {
     uvec3 pos = uvec3((aData & 0x3F), ((aData >> 6) & 0x3F), ((aData >> 12) & 0x3F));
+
+    gl_ClipDistance[0] = -1;
+
     gl_Position = uViewProjection * uModel * uvec4(pos, 1.0);
     fTexCoord = GetTexCoord();
 }

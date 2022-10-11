@@ -111,6 +111,10 @@ class FrameBuffer {
 
     void Bind() const;
     void Unbind() const;
+
+    void BindColorTexture(unsigned int slot) const;
+    void UnbindColorTexture() const;
+
     bool Check() const;
 
     unsigned int GetWidth() const { return m_Width; }

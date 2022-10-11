@@ -17,6 +17,8 @@ class Game : public ts::Layer {
     bool OnKeyPressed(ts::KeyPressedEvent& event);
     virtual void OnImGuiRender() override;
 
+    void RenderScene(const glm::vec4& clipPlane = glm::vec4(0));
+
    private:
     ts::Camera m_Camera;
     ts::Ref<ts::Shader> m_TerrainShader, m_WaterShader;

@@ -1,7 +1,6 @@
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
 
-#define WATER_LEVEL 120
 #define ISO_SURFACE 0.0
 
 /// Cube Indices ///

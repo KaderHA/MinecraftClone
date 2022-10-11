@@ -59,6 +59,10 @@ void Camera::OnUpdate(float dt) {
 
     updateVectors();
 }
+void Camera::InversePitch() {
+    m_CameraSettings.Pitch = -m_CameraSettings.Pitch;
+    updateVectors();
+}
 
 void Camera::updateVectors() {
     glm::vec3 direction;

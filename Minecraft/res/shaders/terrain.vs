@@ -5,14 +5,19 @@ layout(location = 0) in uint aData;
 uniform samplerBuffer uTexUV;
 uniform mat4 uViewProjection;
 uniform mat4 uModel;
+uniform vec4 uPlane;
+
 
 out vec2 fTexCoord;
 out float lighting;
 vec2 GetTexCoord();
 
 void main() {
-    uvec3 pos = uvec3((aData & 0x3F), ((aData >> 6) & 0x3F), ((aData >> 12) & 0x3F));
-    gl_Position = uViewProjection * uModel * uvec4(pos, 1.0);
+    vec4 worldPosition = uModel * uvec4((aData & 0x3F), ((aData >> 6) & 0x3F), ((aData >> 12) & 0x3F), 1.0);
+
+    gl_ClipDistance[0] = dot(worldPosition, uPlane);
+
+    gl_Position = uViewProjection * worldPosition;
     fTexCoord = GetTexCoord();
     uint AOLight = ((aData >> 20) & 3);
     if (AOLight == 0) lighting = 1.0;

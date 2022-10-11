@@ -25,7 +25,9 @@ class Camera {
     void OnUpdate(float dt);
 
     void SetProjection(float fov, float aspect, float nearPlane, float farPlane);
+    void SetPosition(float x, float y, float z) { m_Position = glm::vec3(x, y, z); }
     void SetSpeed(float speed) { m_CameraSettings.Speed = speed; }
+    void InversePitch();
 
     // Getters
     glm::mat4 GetViewProjection() const { return (m_Projection * glm::lookAt(m_Position, m_Position + m_Front, m_Up)); }
