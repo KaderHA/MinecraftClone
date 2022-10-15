@@ -6,7 +6,9 @@ enum class BlockType : unsigned int {
     Dirt,
     Stone,
     Bedrock,
-    Water
+    Water,
+    Sand,
+    Gravel
 };
 
 class Block {

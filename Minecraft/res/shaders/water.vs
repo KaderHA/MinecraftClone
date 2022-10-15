@@ -5,15 +5,19 @@ layout(location = 0) in uint aData;
 uniform samplerBuffer uTexUV;
 uniform mat4 uViewProjection;
 uniform mat4 uModel;
+uniform vec3 uCameraPosition;
 
 out vec2 fTexCoord;
 out vec4 fClipSpace;
+out vec3 fToCamera;
 vec2 GetTexCoord();
 
 void main() {
-    uvec3 pos = uvec3((aData & 0x3F), ((aData >> 6) & 0x3F), ((aData >> 12) & 0x3F));
-    fClipSpace = uViewProjection * uModel * uvec4(pos, 1.0);
+    vec4 worldPosition = uModel * vec4((aData & 0x3F), ((aData >> 6) & 0x3F), ((aData >> 12) & 0x3F), 1.0);
+    worldPosition.y -= 0.1;
+    fClipSpace = uViewProjection * worldPosition;
     gl_Position = fClipSpace;
+    fToCamera = uCameraPosition - worldPosition.xyz;
     fTexCoord = GetTexCoord();
 }
 

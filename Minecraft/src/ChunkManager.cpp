@@ -1,7 +1,7 @@
 #include "ChunkManager.hpp"
 
-#define CHUNK_RADIUS 4
-#define CHUNKS_PER_FRAME 4
+#define CHUNK_RADIUS 8
+#define CHUNKS_PER_FRAME 8
 
 std::vector<ts::Scope<Chunk>> ChunkManager::Chunks;
 std::unordered_set<glm::ivec3, ChunkPositionHash> ChunkManager::m_LoadedChunks;

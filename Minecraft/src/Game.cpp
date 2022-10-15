@@ -13,7 +13,7 @@ Game::~Game() {}
 
 void Game::OnAttach() {
     m_Camera = ts::Camera(glm::vec3(16.f, ((float)150), 16.f), glm::vec3(0.0f, 1.0f, 0.0f));
-    m_Camera.SetProjection(45.f, 1280.f / 720.f, 0.1f, 1000.f);
+    m_Camera.SetProjection(70.f, 1280.f / 720.f, 0.1f, 1000.f);
 
     // Skybox
     m_Skybox.reset(new Skybox("res/textures/sky"));
@@ -21,7 +21,7 @@ void Game::OnAttach() {
 
     // Terrain
     m_TerrainShader.reset(new ts::Shader("res/shaders/terrain.vs", "res/shaders/terrain.fs"));
-    m_Texture.reset(new ts::Texture2D("res/textures/terrain.png"));
+    m_Texture.reset(new ts::Texture2D("res/textures/terrain_atlas-export.png"));
     m_TexCoordBuffer = CreateTexCoordBuffer(m_Texture, 16, 16);
 
     m_TerrainShader->Bind();
@@ -36,7 +36,7 @@ void Game::OnAttach() {
     m_WaterShader->set1i("uReflectionTexture", 2);
     m_WaterShader->set1i("uRefractionTexture", 3);
 
-    m_Reflection.reset(new ts::FrameBuffer(320, 180));
+    m_Reflection.reset(new ts::FrameBuffer(1280, 720));
     m_Reflection->AddColorTexture();
     m_Reflection->AddDepthRenderBuffer();
     if (!m_Reflection->Check()) {
@@ -82,6 +82,7 @@ void Game::OnUpdate(float dt) {
 
     for (const auto& itr : ChunkManager::Chunks) {
         if (itr->GetWaterVertexArray()->GetVertexCount() == 0) continue;
+        m_WaterShader->setVec3fv("uCameraPosition", m_Camera.GetPosition());
         m_WaterShader->setMat4fv("uModel", itr->GetModelMatrix());
         ts::Renderer::Submit(itr->GetWaterVertexArray(), m_WaterShader);
     }

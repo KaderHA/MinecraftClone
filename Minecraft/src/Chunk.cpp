@@ -1,7 +1,8 @@
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
 
-#define ISO_SURFACE 0.0
+#define ISO_SURFACE 0.2
+#define FREQUENCY 0.0022f
 
 /// Cube Indices ///
 /**
@@ -36,16 +37,15 @@ void Chunk::Generate() {
     float noise[(CHUNK_WIDTH) * (CHUNK_DEPTH)];
     glm::ivec3 globPos(m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH);
 
-    m_Fractal->GenUniformGrid2D(noise, globPos.x, globPos.z, CHUNK_WIDTH, CHUNK_DEPTH, 0.005f, 1337);
+    m_Fractal->GenUniformGrid2D(noise, globPos.x, globPos.z, CHUNK_WIDTH, CHUNK_DEPTH, FREQUENCY, 1337);
 
     for (int z = 0; z < CHUNK_DEPTH; z++) {
-        for (int x = 0; x < CHUNK_WIDTH; x++) {
-            for (int y = 0; y < CHUNK_HEIGHT; y++) {
-                int index = ((z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x);
-                int nIndex = (z * CHUNK_WIDTH) + x;
-                float nHeight = (noise[nIndex] + 1.0f) / 2.f;
+        for (int y = 0; y < CHUNK_HEIGHT; y++) {
+            for (int x = 0; x < CHUNK_WIDTH; x++) {
+                int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
+                int noiseIdx = (z * CHUNK_WIDTH) + x;
 
-                int height = nHeight * 255;
+                int height = ((noise[noiseIdx] + 1.0f) / 2.f) * 255;
                 int yHeight = y + (m_LocalChunkPosition.y * CHUNK_HEIGHT);
 
                 if (yHeight < height && yHeight >= height - 10)
@@ -59,7 +59,8 @@ void Chunk::Generate() {
 
                 if (height < WATER_LEVEL && yHeight == WATER_LEVEL && yHeight > height) {
                     m_Blocks[index].SetBlockType(BlockType::Water);
-                }
+                } else if (height < WATER_LEVEL && yHeight >= height - 5 && yHeight <= height)
+                    m_Blocks[index].SetBlockType(BlockType::Sand);
             }
         }
     }
@@ -67,6 +68,7 @@ void Chunk::Generate() {
 
 void Chunk::CreateMesh() {
     m_Vertices = new unsigned int[CHUNK_SIZE * 36];
+    int STEP_X = 1, STEP_Y = CHUNK_WIDTH, STEP_Z = CHUNK_WIDTH * CHUNK_HEIGHT;
     for (int z = 0; z < CHUNK_DEPTH; z++) {
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int x = 0; x < CHUNK_WIDTH; x++) {
@@ -79,54 +81,18 @@ void Chunk::CreateMesh() {
                 if (m_Blocks[index].IsActive() == false) continue;
                 TextureFormat format = this->GetUVs(m_Blocks[index].GetBlockType());
 
-                bool lXNegative = false;
-                if (x > 0)
-                    lXNegative = m_Blocks[index - 1].IsActive();
-                else
-                    lXNegative = NeighborActive(glm::ivec3(m_LocalChunkPosition.x - 1, m_LocalChunkPosition.y, m_LocalChunkPosition.z), glm::ivec3(CHUNK_WIDTH - 1, y, z));
-
-                bool lXPositive = false;
-                if (x < CHUNK_WIDTH - 1)
-                    lXPositive = m_Blocks[index + 1].IsActive();
-                else
-                    lXPositive = NeighborActive(glm::ivec3(m_LocalChunkPosition.x + 1, m_LocalChunkPosition.y, m_LocalChunkPosition.z), glm::ivec3(0, y, z));
-
-                bool lYNegative = false;
-                if (y > 0)
-                    lYNegative = m_Blocks[index - CHUNK_WIDTH].IsActive();
-                else
-                    lYNegative = NeighborActive(glm::ivec3(m_LocalChunkPosition.x, m_LocalChunkPosition.y - 1, m_LocalChunkPosition.z), glm::ivec3(x, CHUNK_HEIGHT - 1, z));
-
-                bool lYPositive = false;
-                if (y < CHUNK_HEIGHT - 1)
-                    lYPositive = m_Blocks[index + CHUNK_WIDTH].IsActive();
-                else
-                    lYPositive = NeighborActive(glm::ivec3(m_LocalChunkPosition.x, m_LocalChunkPosition.y + 1, m_LocalChunkPosition.z), glm::ivec3(x, 0, z));
-
-                bool lZNegative = false;
-                if (z > 0)
-                    lZNegative = m_Blocks[index - (CHUNK_HEIGHT * CHUNK_WIDTH)].IsActive();
-                else
-                    lZNegative = NeighborActive(glm::ivec3(m_LocalChunkPosition.x, m_LocalChunkPosition.y, m_LocalChunkPosition.z - 1), glm::ivec3(x, y, CHUNK_DEPTH - 1));
-
-                bool lZPositive = false;
-                if (z < CHUNK_DEPTH - 1)
-                    lZPositive = m_Blocks[index + (CHUNK_HEIGHT * CHUNK_WIDTH)].IsActive();
-                else
-                    lZPositive = NeighborActive(glm::ivec3(m_LocalChunkPosition.x, m_LocalChunkPosition.y, m_LocalChunkPosition.z + 1), glm::ivec3(x, y, 0));
-
-                if (!lZPositive)
-                    CreateFace(format.side, glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
-                if (!lZNegative)
-                    CreateFace(format.side, glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
-                if (!lXPositive)
-                    CreateFace(format.side, glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
-                if (!lXNegative)
-                    CreateFace(format.side, glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
-                if (!lYPositive)
-                    CreateFace(format.top, glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
-                if (!lYNegative)
-                    CreateFace(format.bottom, glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
+                if (!NeighborActive(index, STEP_Z))  // Forward
+                    AddQuadAO(format.side, index, STEP_Z, STEP_X, STEP_Y, glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1), glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1));
+                if (!NeighborActive(index, -STEP_Z))  // Backward
+                    AddQuadAO(format.side, index, -STEP_Z, -STEP_X, STEP_Y, glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z), glm::ivec3(x + 1, y + 1, z), glm::ivec3(x, y + 1, z));
+                if (!NeighborActive(index, STEP_X))  // Right
+                    AddQuadAO(format.side, index, STEP_X, -STEP_Z, STEP_Y, glm::ivec3(x + 1, y, z + 1), glm::ivec3(x + 1, y, z), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z));
+                if (!NeighborActive(index, -STEP_X))  // Left
+                    AddQuadAO(format.side, index, -STEP_X, STEP_Z, STEP_Y, glm::ivec3(x, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x, y + 1, z + 1));
+                if (!NeighborActive(index, STEP_Y))  // Up
+                    AddQuadAO(format.top, index, STEP_Y, STEP_X, -STEP_Z, glm::ivec3(x, y + 1, z + 1), glm::ivec3(x + 1, y + 1, z + 1), glm::ivec3(x, y + 1, z), glm::ivec3(x + 1, y + 1, z));
+                if (!NeighborActive(index, -STEP_Y))  // Down
+                    AddQuadAO(format.bottom, index, -STEP_Y, STEP_X, STEP_Z, glm::ivec3(x, y, z), glm::ivec3(x + 1, y, z), glm::ivec3(x, y, z + 1), glm::ivec3(x + 1, y, z + 1));
             }
         }
     }
@@ -153,6 +119,33 @@ void Chunk::CreateWaterFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 po
     m_WaterVertices.push_back((pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (0 << 20) | (format << 22));
 }
 
+void Chunk::AddQuadAO(unsigned int format, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11) {
+    int32_t facingIdx = idx + facingOffset;
+
+    unsigned int sideA0 = NeighborActive(idx, facingOffset, -offsetA);
+    unsigned int sideA1 = NeighborActive(idx, facingOffset, +offsetA);
+    unsigned int sideB0 = NeighborActive(idx, facingOffset, -offsetB);
+    unsigned int sideB1 = NeighborActive(idx, facingOffset, +offsetB);
+
+    unsigned int corner00 = (sideA0 & sideB0) || NeighborActive(idx, facingOffset, -offsetA, -offsetB);
+    unsigned int corner01 = (sideA0 & sideB1) || NeighborActive(idx, facingOffset, -offsetA, +offsetB);
+    unsigned int corner10 = (sideA1 & sideB0) || NeighborActive(idx, facingOffset, +offsetA, -offsetB);
+    unsigned int corner11 = (sideA1 & sideB1) || NeighborActive(idx, facingOffset, +offsetA, +offsetB);
+
+    unsigned int ao00 = sideA0 + sideB0 + corner00;
+    unsigned int ao10 = sideA1 + sideB0 + corner10;
+    unsigned int ao01 = sideA0 + sideB1 + corner01;
+    unsigned int ao11 = sideA1 + sideB1 + corner11;
+
+    m_Vertices[m_VertexCount++] = (pos00.x) | ((pos00.y) << 6) | ((pos00.z) << 12) | (0 << 18) | (ao00 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (ao10 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (ao01 << 20) | (format << 22);
+
+    m_Vertices[m_VertexCount++] = (pos10.x) | ((pos10.y) << 6) | ((pos10.z) << 12) | (1 << 18) | (ao10 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos11.x) | ((pos11.y) << 6) | ((pos11.z) << 12) | (3 << 18) | (ao11 << 20) | (format << 22);
+    m_Vertices[m_VertexCount++] = (pos01.x) | ((pos01.y) << 6) | ((pos01.z) << 12) | (2 << 18) | (ao01 << 20) | (format << 22);
+}
+
 void Chunk::GenMesh() {
     m_Vertices = new unsigned int[CHUNK_SIZE * 36];
     constexpr int32_t SIZE_GEN = 32 + 2;
@@ -167,13 +160,7 @@ void Chunk::GenMesh() {
     glm::ivec3 globPos(m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH);
 
     auto fnPerlin = FastNoise::New<FastNoise::Perlin>();
-    auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
-
-    fnFractal->SetSource(fnPerlin);
-    fnFractal->SetOctaveCount(16);
-    fnFractal->SetGain(0.5f);
-    fnFractal->SetLacunarity(2.f);
-    fnFractal->GenUniformGrid3D(noise, globPos.x - 1, globPos.y - 1, globPos.z - 1, SIZE_GEN, SIZE_GEN, SIZE_GEN, 0.005f, 1337);
+    m_Fractal->GenUniformGrid3D(noise, globPos.x - 1, globPos.y - 1, globPos.z - 1, SIZE_GEN, SIZE_GEN, SIZE_GEN, 0.005f, 1337);
 
     constexpr int32_t STEP_X = 1;
     constexpr int32_t STEP_Y = SIZE_GEN;
@@ -256,13 +243,43 @@ void Chunk::UploadToGPU() {
 bool Chunk::NeighborActive(glm::ivec3 chunkPos, glm::ivec3 blockPos) {
     glm::ivec3 globPos(chunkPos.x * CHUNK_WIDTH, chunkPos.y * CHUNK_HEIGHT, chunkPos.z * CHUNK_DEPTH);
 
-    float height = ((m_Fractal->GenSingle2D((globPos.x + blockPos.x) * 0.005f, (globPos.z + blockPos.z) * 0.005f, 1337) + 1.0f) / 2.f) * 255;
-    int yHeight = blockPos.y + (chunkPos.y * CHUNK_HEIGHT);
+    float height = ((m_Fractal->GenSingle2D((globPos.x + blockPos.x) * FREQUENCY, (globPos.z + blockPos.z) * FREQUENCY, 1337) + 1.0f) / 2.f) * 255;
+    int yHeight = blockPos.y + globPos.y;
 
     if (yHeight <= height)
         return true;
     else
         return false;
+}
+
+bool Chunk::NeighborActive(int index, int offsetA, int offsetB, int offsetC) {
+    bool NeighborChunk = false;
+    glm::ivec3 idx = To3D(index);
+    glm::ivec3 off = To3D(offsetA) + To3D(offsetB) + To3D(offsetC);
+
+    glm::ivec3 chunkPos = m_LocalChunkPosition;
+    if ((idx.z == 0 && off.z < 0) || (idx.z == CHUNK_DEPTH - 1 && off.z > 0)) {
+        chunkPos.z += off.z;
+        idx += off;
+        idx.z = off.z > 0 ? 0 : CHUNK_DEPTH - 1;
+        NeighborChunk = true;
+    }
+    if ((idx.y == 0 && off.y < 0) || (idx.y == CHUNK_HEIGHT - 1 && off.y > 0)) {
+        chunkPos.y += off.y;
+        idx += off;
+        idx.y = off.y > 0 ? 0 : CHUNK_HEIGHT - 1;
+        NeighborChunk = true;
+    }
+    if ((idx.x == 0 && off.x < 0) || (idx.x == CHUNK_WIDTH - 1 && off.x > 0)) {
+        chunkPos.x += off.x;
+        idx += off;
+        idx.x = off.x > 0 ? 0 : CHUNK_WIDTH - 1;
+        NeighborChunk = true;
+    }
+    if (NeighborChunk)
+        return NeighborActive(chunkPos, idx);
+    else
+        return m_Blocks[index + (offsetA + offsetB + offsetC)].IsActive();
 }
 TextureFormat Chunk::GetUVs(BlockType type) {
     TextureFormat tf = {0, 0, 0};
@@ -288,7 +305,22 @@ TextureFormat Chunk::GetUVs(BlockType type) {
 
         case BlockType::Water:
             tf = {205, 205, 205};
+            break;
+        case BlockType::Sand:
+            tf = {18, 18, 18};
+            break;
+        case BlockType::Gravel:
+            tf = {19, 19, 19};
+            break;
     }
 
     return tf;
+}
+
+glm::ivec3 Chunk::To3D(int index) {
+    int z = index / (CHUNK_WIDTH * CHUNK_HEIGHT);
+    index -= z * CHUNK_WIDTH * CHUNK_HEIGHT;
+    int y = index / CHUNK_WIDTH;
+    int x = index % CHUNK_WIDTH;
+    return glm::ivec3(x, y, z);
 }
