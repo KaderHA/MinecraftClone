@@ -31,6 +31,7 @@ class Chunk {
     void Generate();
     void GenMesh();
     void CreateMesh();
+    void CreateMesh(std::vector<Chunk*> neighbors);
     void UploadToGPU();
 
     const ts::Ref<ts::VertexArray>& GetTerrainVertexArray() const { return m_TerrainVA; }
@@ -38,16 +39,24 @@ class Chunk {
     glm::mat4 GetModelMatrix() const { return glm::translate(glm::mat4(1.0f), {m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH}); }
     glm::ivec3 GetPosition() const { return m_LocalChunkPosition; }
     Block GetBlock(glm::ivec3 pos) const { return m_Blocks[(pos.z * CHUNK_WIDTH * CHUNK_HEIGHT) + (pos.y * CHUNK_WIDTH) + pos.x]; }
+    void SetBlock(glm::ivec3 pos, BlockType type) {
+        m_Blocks[(pos.z * CHUNK_WIDTH * CHUNK_HEIGHT) + (pos.y * CHUNK_WIDTH) + pos.x].SetBlockType(type);
+        m_Altered = true;
+    }
     bool NeighborActive(glm::ivec3 chunkPos, glm::ivec3 blockPos);
+    bool NeighborActive(glm::ivec3 chunkPos, glm::ivec3 blockPos, std::vector<Chunk*> neighbors);
     bool NeighborActive(int index, int offsetA, int offsetB = 0, int offsetC = 0);
+    bool NeighborActive(int index, std::vector<Chunk*> neighbors, int offsetA, int offsetB = 0, int offsetC = 0);
 
     inline bool IsLoaded() const { return m_Loaded; }
+    inline bool IsAltered() const { return m_Altered; }
 
    private:
     void CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
     void CreateWaterFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
     void AddQuadAO(float* noise, unsigned int format, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
     void AddQuadAO(unsigned int format, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
+    void AddQuadAO(unsigned int format, std::vector<Chunk*> neighbors, int32_t idx, int32_t facingOffset, int32_t offsetA, int32_t offsetB, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11);
     glm::ivec3 To3D(int index);
 
    public:
@@ -63,7 +72,7 @@ class Chunk {
     unsigned int* m_Vertices;
     float* m_Noise;
     std::vector<unsigned int> m_WaterVertices;
-    bool m_Loaded;
+    bool m_Loaded, m_Altered = false;
     int m_VertexCount;
     ts::Ref<ts::VertexArray> m_TerrainVA, m_WaterVA;
     ts::Scope<Block[]> m_Blocks;

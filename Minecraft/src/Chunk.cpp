@@ -1,7 +1,7 @@
 #include "Chunk.hpp"
 #include "ChunkManager.hpp"
 
-#define ISO_SURFACE 0.2
+#define ISO_SURFACE 0.31
 #define FREQUENCY 0.0022f
 
 /// Cube Indices ///
@@ -97,6 +97,7 @@ void Chunk::CreateMesh() {
         }
     }
     m_Loaded = true;
+    m_Altered = false;
 }
 
 void Chunk::CreateFace(unsigned int format, glm::ivec3 pos00, glm::ivec3 pos10, glm::ivec3 pos01, glm::ivec3 pos11) {

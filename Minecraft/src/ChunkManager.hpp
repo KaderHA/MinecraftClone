@@ -17,6 +17,7 @@ class ChunkManager {
     static void LoadChunks(glm::vec3 cameraPosition);
     static void UnloadChunks(glm::vec3 cameraPosition);
     static void SynchronizeChunks();
+    static void RebuildChunks();
 
    public:
     static std::vector<ts::Scope<Chunk>> Chunks;

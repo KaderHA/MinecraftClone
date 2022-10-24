@@ -34,6 +34,7 @@ class Camera {
     glm::mat4 GetView() const { return glm::lookAt(m_Position, m_Position + m_Front, m_Up); }
     glm::mat4 GetProjection() const { return m_Projection; }
     glm::vec3 GetPosition() const { return m_Position; }
+    glm::vec3 GetViewDirection() const { return m_Front; }
 
    private:
     void updateVectors();

@@ -119,11 +119,49 @@ void Game::RenderScene(const glm::vec4& clipPlane) {
 }
 
 void Game::OnEvent(ts::Event& event) {
-    // ts::EventDispatcher dispatcher(event);
-    // dispatcher.Dispatch<ts::KeyPressedEvent>(std::bind(&Game::OnKeyPressed, this, std::placeholders::_1));
+    ts::EventDispatcher dispatcher(event);
+    dispatcher.Dispatch<ts::MousePressedEvent>(std::bind(&Game::OnMousePressed, this, std::placeholders::_1));
 }
 
-bool Game::OnKeyPressed(ts::KeyPressedEvent& event) {
+bool Game::OnMousePressed(ts::MousePressedEvent& event) {
+    bool found = false;
+    if (event.GetButton() == TS_MOUSE_BUTTON_1)
+        for (int i = 1; i <= 5; i++) {
+            if (found) break;
+            glm::ivec3 camViewVector = floor(m_Camera.GetPosition() + (glm::normalize(m_Camera.GetViewDirection()) * ((float)i)));
+            glm::ivec3 camVecChunkPosition = {camViewVector.x >= 0 ? camViewVector.x / 32 : (camViewVector.x - 32) / 32, camViewVector.y / 32, camViewVector.z >= 0 ? camViewVector.z / 32 : (camViewVector.z - 32) / 32};
+            glm::ivec3 camVecBlockPosition = (camViewVector % 32 + 32) % 32;
+            for (const auto& itr : ChunkManager::Chunks) {
+                if (itr->GetPosition() == camVecChunkPosition) {
+                    if (itr->GetBlock(camVecBlockPosition).IsActive()) {
+                        itr->SetBlock(camVecBlockPosition, BlockType::Air);
+                        found = true;
+                        break;
+                    } else
+                        break;
+                }
+            }
+        }
+
+    glm::ivec3 prev;
+    if (event.GetButton() == TS_MOUSE_BUTTON_2)
+        for (int i = 1; i <= 5; i++) {
+            if (found) break;
+            glm::ivec3 camViewVector = floor(m_Camera.GetPosition() + (glm::normalize(m_Camera.GetViewDirection()) * ((float)i)));
+            glm::ivec3 camVecChunkPosition = {camViewVector.x >= 0 ? camViewVector.x / 32 : (camViewVector.x - 32) / 32, camViewVector.y / 32, camViewVector.z >= 0 ? camViewVector.z / 32 : (camViewVector.z - 32) / 32};
+            glm::ivec3 camVecBlockPosition = (camViewVector % 32 + 32) % 32;
+            for (const auto& itr : ChunkManager::Chunks) {
+                if (itr->GetPosition() == camVecChunkPosition) {
+                    if (itr->GetBlock(camVecBlockPosition).IsActive()) {
+                        if (!itr->GetBlock(prev).IsActive())
+                            itr->SetBlock(prev, BlockType::Dirt);
+                        found = true;
+                        break;
+                    } else
+                        prev = camVecBlockPosition;
+                }
+            }
+        }
     return true;
 }
 

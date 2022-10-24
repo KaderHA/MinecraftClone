@@ -14,6 +14,7 @@ void ChunkManager::Update(glm::vec3 cameraPosition) {
     LoadChunks(cameraPosition);
     UnloadChunks(cameraPosition);
     SynchronizeChunks();
+    RebuildChunks();
 }
 
 void ChunkManager::LoadChunks(glm::vec3 cameraPosition) {
@@ -90,5 +91,11 @@ ts::Scope<Chunk> ChunkManager::Load(glm::ivec3 pos) {
     return chunk;
 }
 
-// void ChunkManager::Rebuild() {
-// }
+void ChunkManager::RebuildChunks() {
+    for (auto& c : Chunks) {
+        if (c->IsAltered()) {
+            c->CreateMesh();
+            c->UploadToGPU();
+        }
+    }
+}
