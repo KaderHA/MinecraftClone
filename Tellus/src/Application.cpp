@@ -37,6 +37,7 @@ void Application::Run() {
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CLIP_DISTANCE0);
+        glEnable(GL_ALPHA_TEST);
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         for (Layer* layer : m_LayerStack)
             layer->OnUpdate(dt);

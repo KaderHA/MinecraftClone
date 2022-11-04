@@ -21,7 +21,7 @@ void Game::OnAttach() {
 
     // Terrain
     m_TerrainShader.reset(new ts::Shader("res/shaders/terrain.vs", "res/shaders/terrain.fs"));
-    m_Texture.reset(new ts::Texture2D("res/textures/terrain_atlas-export.png"));
+    m_Texture.reset(new ts::Texture2D("res/textures/terrain_atlas.png"));
     m_TexCoordBuffer = CreateTexCoordBuffer(m_Texture, 16, 16);
 
     m_TerrainShader->Bind();
@@ -144,6 +144,7 @@ bool Game::OnMousePressed(ts::MousePressedEvent& event) {
         }
 
     glm::ivec3 prev;
+    Chunk* prevChunk;
     if (event.GetButton() == TS_MOUSE_BUTTON_2)
         for (int i = 1; i <= 5; i++) {
             if (found) break;
@@ -153,12 +154,22 @@ bool Game::OnMousePressed(ts::MousePressedEvent& event) {
             for (const auto& itr : ChunkManager::Chunks) {
                 if (itr->GetPosition() == camVecChunkPosition) {
                     if (itr->GetBlock(camVecBlockPosition).IsActive()) {
-                        if (!itr->GetBlock(prev).IsActive())
-                            itr->SetBlock(prev, BlockType::Dirt);
+                        if (prev.x == 0 || prev.x == 31 ||
+                            prev.y == 0 || prev.y == 31 ||
+                            prev.z == 0 || prev.z == 31) {
+                            if (!prevChunk->GetBlock(prev).IsActive()) {
+                                prevChunk->SetBlock(prev, BlockType::Dirt);
+                            }
+                        } else {
+                            if (!itr->GetBlock(prev).IsActive())
+                                itr->SetBlock(prev, BlockType::Dirt);
+                        }
                         found = true;
                         break;
-                    } else
+                    } else {
                         prev = camVecBlockPosition;
+                        prevChunk = itr.get();
+                    }
                 }
             }
         }

@@ -37,16 +37,63 @@ void Chunk::Generate() {
     float noise[(CHUNK_WIDTH) * (CHUNK_DEPTH)];
     glm::ivec3 globPos(m_LocalChunkPosition.x * CHUNK_WIDTH, m_LocalChunkPosition.y * CHUNK_HEIGHT, m_LocalChunkPosition.z * CHUNK_DEPTH);
 
+    srand(m_LocalChunkPosition.x + m_LocalChunkPosition.y);
     m_Fractal->GenUniformGrid2D(noise, globPos.x, globPos.z, CHUNK_WIDTH, CHUNK_DEPTH, FREQUENCY, 1337);
 
     for (int z = 0; z < CHUNK_DEPTH; z++) {
-        for (int y = 0; y < CHUNK_HEIGHT; y++) {
-            for (int x = 0; x < CHUNK_WIDTH; x++) {
-                int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
-                int noiseIdx = (z * CHUNK_WIDTH) + x;
+        for (int x = 0; x < CHUNK_WIDTH; x++) {
+            int noiseIdx = (z * CHUNK_WIDTH) + x;
 
-                int height = ((noise[noiseIdx] + 1.0f) / 2.f) * 255;
+            int height = ((noise[noiseIdx] + 1.0f) / 2.f) * 255;
+            bool tree = rand() % 200 == 199 && height % 32 <= 31 - 6;
+
+            for (int y = 0; y < CHUNK_HEIGHT; y++) {
+                int index = (z * CHUNK_HEIGHT * CHUNK_WIDTH) + (y * CHUNK_WIDTH) + x;
                 int yHeight = y + (m_LocalChunkPosition.y * CHUNK_HEIGHT);
+
+                if (tree && height > WATER_LEVEL && ProperDistance(glm::ivec3(x, y, z), 2)) {
+                    if ((yHeight > height && yHeight <= height + 3)) {
+                        m_Blocks[index].SetBlockType(BlockType::Log);
+                        if (yHeight == height + 3) {
+                            m_Blocks[index + 1].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - 1].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index + (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                        }
+                    } else if ((yHeight > height + 3 && yHeight <= height + 6)) {
+                        m_Blocks[index].SetBlockType(BlockType::Leaf);
+                        m_Blocks[index + 1].SetBlockType(BlockType::Leaf);
+                        m_Blocks[index - 1].SetBlockType(BlockType::Leaf);
+
+                        m_Blocks[index + (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                        m_Blocks[index - (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+
+                        if (yHeight == height + 4) {
+                            m_Blocks[index + 2].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - 2].SetBlockType(BlockType::Leaf);
+
+                            m_Blocks[index + 2 + (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index + 2 - (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - 2 + (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - 2 - (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+
+                            m_Blocks[index + ((CHUNK_WIDTH * CHUNK_HEIGHT) * 2)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - ((CHUNK_WIDTH * CHUNK_HEIGHT) * 2)].SetBlockType(BlockType::Leaf);
+
+                            m_Blocks[index + ((CHUNK_WIDTH * CHUNK_HEIGHT) * 2) + 1].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index + ((CHUNK_WIDTH * CHUNK_HEIGHT) * 2) - 1].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - ((CHUNK_WIDTH * CHUNK_HEIGHT) * 2) + 1].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - ((CHUNK_WIDTH * CHUNK_HEIGHT) * 2) - 1].SetBlockType(BlockType::Leaf);
+                        }
+                        if (yHeight == height + 6) {
+                        } else {
+                            m_Blocks[index + 1 + (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - 1 + (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index + 1 - (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                            m_Blocks[index - 1 - (CHUNK_WIDTH * CHUNK_HEIGHT)].SetBlockType(BlockType::Leaf);
+                        }
+                    }
+                }
 
                 if (yHeight < height && yHeight >= height - 10)
                     m_Blocks[index].SetBlockType(BlockType::Dirt);
@@ -280,7 +327,16 @@ bool Chunk::NeighborActive(int index, int offsetA, int offsetB, int offsetC) {
     if (NeighborChunk)
         return NeighborActive(chunkPos, idx);
     else
-        return m_Blocks[index + (offsetA + offsetB + offsetC)].IsActive();
+        return m_Blocks[index + (offsetA + offsetB + offsetC)].IsActive() && !m_Blocks[index + (offsetA + offsetB + offsetC)].IsTransparent();
+}
+
+bool Chunk::ProperDistance(glm::ivec3 blockPos, int maxDist) {
+    if (blockPos.x >= CHUNK_WIDTH - maxDist || blockPos.x < maxDist ||
+        // blockPos.y >= CHUNK_HEIGHT - maxDist || blockPos.y < maxDist ||
+        blockPos.z >= CHUNK_DEPTH - maxDist || blockPos.z < maxDist)
+        return false;
+
+    return true;
 }
 TextureFormat Chunk::GetUVs(BlockType type) {
     TextureFormat tf = {0, 0, 0};
@@ -312,6 +368,12 @@ TextureFormat Chunk::GetUVs(BlockType type) {
             break;
         case BlockType::Gravel:
             tf = {19, 19, 19};
+            break;
+        case BlockType::Log:
+            tf = {21, 20, 21};
+            break;
+        case BlockType::Leaf:
+            tf = {52, 52, 52};
             break;
     }
 

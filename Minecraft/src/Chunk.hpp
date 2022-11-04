@@ -47,6 +47,7 @@ class Chunk {
     bool NeighborActive(glm::ivec3 chunkPos, glm::ivec3 blockPos, std::vector<Chunk*> neighbors);
     bool NeighborActive(int index, int offsetA, int offsetB = 0, int offsetC = 0);
     bool NeighborActive(int index, std::vector<Chunk*> neighbors, int offsetA, int offsetB = 0, int offsetC = 0);
+    bool ProperDistance(glm::ivec3 blockPos, int maxDist);
 
     inline bool IsLoaded() const { return m_Loaded; }
     inline bool IsAltered() const { return m_Altered; }

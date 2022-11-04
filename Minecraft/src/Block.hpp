@@ -8,7 +8,9 @@ enum class BlockType : unsigned int {
     Bedrock,
     Water,
     Sand,
-    Gravel
+    Gravel,
+    Log,
+    Leaf
 };
 
 class Block {
@@ -19,6 +21,7 @@ class Block {
     // Getter
     bool IsActive() const { return m_ID != 0 && m_ID != static_cast<unsigned int>(BlockType::Water); }
     inline BlockType GetBlockType() const { return static_cast<BlockType>(m_ID); }
+    bool IsTransparent() const { return m_ID == static_cast<unsigned int>(BlockType::Leaf); }
 
     // Setters
     void SetBlockType(BlockType blockType);
