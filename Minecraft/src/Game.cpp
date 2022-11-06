@@ -5,6 +5,8 @@
 static std::mutex ChunksMutex;
 static ts::Ref<ts::TextureBuffer> CreateTexCoordBuffer(const ts::Ref<ts::Texture>& texture, unsigned int row_count, unsigned int column_count);
 
+static BlockType selected = BlockType::Dirt;
+
 App::App() { PushLayer(new Game); }
 App::~App() {}
 
@@ -121,6 +123,7 @@ void Game::RenderScene(const glm::vec4& clipPlane) {
 void Game::OnEvent(ts::Event& event) {
     ts::EventDispatcher dispatcher(event);
     dispatcher.Dispatch<ts::MousePressedEvent>(std::bind(&Game::OnMousePressed, this, std::placeholders::_1));
+    dispatcher.Dispatch<ts::KeyPressedEvent>(std::bind(&Game::OnKeyPressed, this, std::placeholders::_1));
 }
 
 bool Game::OnMousePressed(ts::MousePressedEvent& event) {
@@ -158,11 +161,11 @@ bool Game::OnMousePressed(ts::MousePressedEvent& event) {
                             prev.y == 0 || prev.y == 31 ||
                             prev.z == 0 || prev.z == 31) {
                             if (!prevChunk->GetBlock(prev).IsActive()) {
-                                prevChunk->SetBlock(prev, BlockType::Dirt);
+                                prevChunk->SetBlock(prev, selected);
                             }
                         } else {
                             if (!itr->GetBlock(prev).IsActive())
-                                itr->SetBlock(prev, BlockType::Dirt);
+                                itr->SetBlock(prev, selected);
                         }
                         found = true;
                         break;
@@ -173,6 +176,13 @@ bool Game::OnMousePressed(ts::MousePressedEvent& event) {
                 }
             }
         }
+    return true;
+}
+
+bool Game::OnKeyPressed(ts::KeyPressedEvent& event) {
+    if (event.GetKeyCode() >= 49 && event.GetKeyCode() <= 57) {
+        selected = static_cast<BlockType>(event.GetKeyCode() - 48);
+    }
     return true;
 }
 

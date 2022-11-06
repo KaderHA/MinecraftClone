@@ -15,6 +15,7 @@ class Game : public ts::Layer {
     virtual void OnDetach() override;
     virtual void OnEvent(ts::Event& event) override;
     bool OnMousePressed(ts::MousePressedEvent& event);
+    bool OnKeyPressed(ts::KeyPressedEvent& event);
     virtual void OnImGuiRender() override;
 
     void RenderScene(const glm::vec4& clipPlane = glm::vec4(0));
